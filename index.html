@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App de Certificados</title>
+    <link rel="stylesheet" href="style.css">
+    
+</head>
+<body>
+    <header>
+        <h1>App de Certificados</h1>
+        <nav>
+            <button id="loginBtn">Iniciar Sesión</button>
+            <button id="adminPanelBtn" style="display:none;">Panel de Administración</button>
+            <button id="logoutBtn" style="display:none;">Cerrar Sesión</button>
+        </nav>
+    </header>
+
+    <main>
+        <section id="homeSection">
+            <h2>Bienvenido a la App de Certificados</h2>
+            <p>Aquí puedes buscar y descargar tus certificados.</p>
+            <div class="search-container">
+                <input type="text" id="cedulaSearchInput" placeholder="Ingresa tu número de cédula">
+                <button id="searchCertBtn">Buscar Certificado</button>
+            </div>
+            <div id="certificateResult" class="result-card" style="display:none;">
+                <h3>Certificado Encontrado</h3>
+                <p><strong>Tipo de Documento:</strong> <span id="certTipoDocumento"></span></p>
+                <p><strong>Nombre:</strong> <span id="certNombrePersona"></span></p>
+                <p><strong>Apellido:</strong> <span id="certApellidoPersona"></span></p>
+                <p><strong>Cédula:</strong> <span id="certNumeroIdentificacion"></span></p>
+                <p><strong>Fecha de Creación:</strong> <span id="certFechaCreacion"></span></p>
+                <p><strong>Fecha de Vencimiento:</strong> <span id="certFechaVencimiento"></span></p>
+                <button id="downloadCertBtn">Descargar PDF</button>
+                <button id="sendEmailCertBtn">Enviar por Email</button>
+                <input type="email" id="emailRecipientInput" placeholder="Correo del destinatario" style="display:none;">
+            </div>
+            <div id="noCertificateFound" class="error-message" style="display:none;">
+                <p>No se encontró ningún certificado con la cédula proporcionada.</p>
+            </div>
+        </section>
+
+        <section id="loginSection" style="display:none;">python backend/create_admin.py
+
+            <h2>Iniciar Sesión (Administrador)</h2>
+            <form id="loginForm">
+    <label for="loginUser">Usuario:</label>
+    <input type="text" id="loginUser" name="loginUser" required>
+    <label for="loginPass">Contraseña:</label>
+    <input type="password" id="loginPass" name="loginPass" required>
+    <!-- ¡ASEGÚRATE DE QUE EL BOTÓN TENGA type="submit"! -->
+    <button type="submit" id="loginSubmitBtn">Entrar</button> 
+           </form>
+            <p id="loginMessage" class="error-message" style="display:none;"></p>
+        </section>
+
+        <section id="adminPanelSection" style="display:none;">
+            <h2>Panel de Administración</h2>
+            <p>Bienvenido, <span id="adminUsername"></span>.</p>
+
+            <h3>Gestionar Administradores</h3>
+            <button id="showAddAdminFormBtn">Añadir Nuevo Administrador</button>
+            <div id="addAdminForm" style="display:none;">
+                <h4>Añadir Administrador</h4>
+                <input type="text" id="newAdminUser" placeholder="Usuario">
+                <input type="password" id="newAdminPass" placeholder="Contraseña">
+                <button id="addAdminBtn">Añadir</button>
+                <p id="addAdminMessage" class="message" style="display:none;"></p>
+            </div>
+            <ul id="adminList"></ul>
+
+            <h3>Gestionar Certificados</h3>
+            <button id="showAddCertFormBtn">Añadir Nuevo Certificado</button>
+            <div id="addCertForm" style="display:none;">
+                <h4>Añadir Certificado</h4>
+                <input type="text" id="newCertTipoDocumento" placeholder="Tipo de Documento" required>
+                <input type="text" id="newCertNombrePersona" placeholder="Nombre" required>
+                <input type="text" id="newCertApellidoPersona" placeholder="Apellido" required>
+                <input type="text" id="newCertNumeroIdentificacion" placeholder="Número de Cédula" required>
+                <input type="date" id="newCertFechaCreacion" required>
+                <input type="date" id="newCertFechaVencimiento" required>
+                <input type="text" id="newCertRutaPdf" placeholder="Ruta PDF (generada automáticamente)" readonly style="display:none;">
+                <input type="email" id="newCertEmailPersona" placeholder="Email (opcional)">
+                <button id="addCertBtn">Añadir</button>
+                <p id="addCertMessage" class="message" style="display:none;"></p>
+            </div>
+            <ul id="certificateList"></ul>
+        </section>
+    </main>
+
+    <div id="notification-area"></div>
+
+    <div id="editAdminModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Editar Administrador</h2>
+            <input type="hidden" id="editAdminId">
+            <label for="editAdminUser">Usuario:</label>
+            <input type="text" id="editAdminUser" placeholder="Usuario">
+            <label for="editAdminPass">Contraseña (dejar en blanco para no cambiar):</label>
+            <input type="password" id="editAdminPass" placeholder="Nueva Contraseña">
+            <button id="saveAdminBtn">Guardar Cambios</button>
+        </div>
+    </div>
+
+    <div id="editCertModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Editar Certificado</h2>
+            <input type="hidden" id="editCertId">
+            <label for="editCertTipoDocumento">Tipo de Documento:</label>
+            <input type="text" id="editCertTipoDocumento" required>
+            <label for="editCertNombrePersona">Nombre:</label>
+            <input type="text" id="editCertNombrePersona" required>
+            <label for="editCertApellidoPersona">Apellido:</label>
+            <input type="text" id="editCertApellidoPersona" required>
+            <label for="editCertNumeroIdentificacion">Número de Cédula:</label>
+            <input type="text" id="editCertNumeroIdentificacion" required>
+            <label for="editCertFechaCreacion">Fecha de Creación:</label>
+            <input type="date" id="editCertFechaCreacion" required>
+            <label for="editCertFechaVencimiento">Fecha de Vencimiento:</label>
+            <input type="date" id="editCertFechaVencimiento" required>
+            <label for="editCertRutaPdf">Ruta PDF:</label>
+            <span id="displayEditCertRutaPdf"></span>
+            <input type="hidden" id="editCertRutaPdf">
+            <label for="editCertEmailPersona">Email (opcional):</label>
+            <input type="email" id="editCertEmailPersona">
+            <button id="saveCertBtn">Guardar Cambios</button>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
