@@ -1,0 +1,32 @@
+# Archivo .gitignore para un proyecto típico de Node.js/Python
+
+# Variables de entorno (¡CRÍTICO!)
+.env
+.env.local
+.env.production
+
+# Entornos virtuales de Python (venv/)
+venv/
+env/
+.venv/
+
+# Dependencias de Node.js
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de IDE/Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Carpeta de compilación (si usas TypeScript, etc.)
+dist/
+build/
