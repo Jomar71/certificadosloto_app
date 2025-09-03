@@ -1,1 +1,2 @@
-const API_BASE_URL = 'http://127.0.0.1:5000';
+// Contenido para: frontend/config.js
+const API_BASE_URL = 'https://certificadosloto-app.onrender.com';
