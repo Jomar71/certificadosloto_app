@@ -1,6 +1,6 @@
 # ===================================================================================
-# ARCHIVO FINAL PARA: backend/app.py
-# Solución definitiva para el problema de CORS en producción.
+# ARCHIVO FINAL Y COMPLETO PARA: backend/app.py
+# Solución definitiva para CORS que funciona tanto en local como en producción.
 # ===================================================================================
 
 import os
@@ -9,7 +9,7 @@ from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-# Lógica de importación segura
+# Lógica de importación segura para que 'python backend/app.py' funcione
 if __name__ == "__main__" and __package__ is None:
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     from routes.main import main_bp
@@ -28,11 +28,16 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key')
 
     # --- ¡¡ESTA ES LA CONFIGURACIÓN DE CORS DEFINITIVA!! ---
-    # Le decimos explícitamente que confíe en la URL de tu sitio en GitHub Pages.
+    # Una lista de los orígenes en los que confiamos.
+    allowed_origins = [
+        "http://127.0.0.1:5500",  # Para tu Live Server local
+        "https://jomar71.github.io" # Para tu sitio en GitHub Pages
+    ]
+    
     CORS(
         app,
         supports_credentials=True,
-        origins=["https://jomar71.github.io"]
+        origins=allowed_origins # Pasamos la lista de orígenes permitidos
     )
     # --------------------------------------------------------
     
