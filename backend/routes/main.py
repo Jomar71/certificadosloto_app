@@ -1,13 +1,13 @@
 # ===================================================================================
-# ARCHIVO COMPLETO Y ESTABLE PARA: backend/routes/main.py
+# ARCHIVO COMPLETO Y CORREGIDO PARA: backend/routes/main.py
 # ===================================================================================
-
 from flask import Blueprint, request, jsonify, session
 from werkzeug.security import check_password_hash
 import traceback
 
-# Usamos una importación directa que funcionará con el método 'python backend/app.py'
-from db import get_db_connection, release_db_connection
+# ¡IMPORTACIÓN CORREGIDA! Ahora busca desde la raíz del proyecto.
+from backend.db import get_db_connection, release_db_connection
+from backend.auth import admin_required
 
 main_bp = Blueprint('main', __name__)
 
@@ -20,8 +20,7 @@ def login_admin():
     conn = None
     try:
         conn = get_db_connection()
-        if not conn:
-            return jsonify({"message": "Error de conexión con la base de datos"}), 500
+        if not conn: return jsonify({"message": "Error de conexión con la base de datos"}), 500
         
         cur = conn.cursor()
         cur.execute("SELECT admin_id, login_user, login_pass FROM administradores WHERE login_user = %s", (data['login_user'],))
@@ -39,8 +38,7 @@ def login_admin():
         traceback.print_exc()
         return jsonify({"message": "Error interno del servidor"}), 500
     finally:
-        if conn:
-            release_db_connection(conn)
+        if conn: release_db_connection(conn)
 
 @main_bp.route('/logout_admin', methods=['POST'])
 def logout_admin():
@@ -48,8 +46,10 @@ def logout_admin():
     return jsonify({"message": "Sesión cerrada exitosamente"}), 200
 
 @main_bp.route('/is_admin', methods=['GET'])
+@admin_required
 def is_admin():
     if 'admin_id' in session:
         return jsonify({"is_admin": True, "login_user": session.get('login_user')})
     else:
+        # Este caso no debería ocurrir gracias a @admin_required, pero es una buena práctica
         return jsonify({"is_admin": False})
