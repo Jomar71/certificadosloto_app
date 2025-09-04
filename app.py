@@ -17,7 +17,7 @@ load_dotenv(dotenv_path=dotenv_path)
 from backend.routes.main import main_bp
 from backend.routes.admin import admin_bp
 from backend.routes.certificate import certificate_bp
-from backend.db import init_pool # Importamos la función para iniciar la conexión a la DB
+
 
 def create_app():
     """
@@ -42,7 +42,7 @@ def create_app():
 
     # --- Inicializar Conexión a la Base de Datos ---
     # Llamamos a la función que crea el pool de conexiones al arrancar la app
-    init_pool()
+    
 
     # --- Registrar los Blueprints ---
     app.register_blueprint(main_bp, url_prefix='/api')
