@@ -1,136 +1,134 @@
 # App de Certificados
 
-Este proyecto es una aplicación web completa para la gestión y distribución de certificados. Permite a los usuarios buscar y descargar sus certificados, y ofrece un panel de administración robusto para la gestión de usuarios administradores y certificados.
+Este proyecto es una aplicación web completa para la gestión y distribución de certificados. Permite a los usuarios públicos buscar y descargar sus certificados, y ofrece un panel de administración robusto para la gestión completa de los registros.
+
+La aplicación está desplegada y funcional:
+*   **Frontend Público:** [https://jomar71.github.io/certificadosloto_app/](https://jomar71.github.io/certificadosloto_app/)
+*   **API del Backend:** [https://certificadosloto-app.onrender.com](https://certificadosloto-app.onrender.com)
 
 ## Características Principales
 
 ### Módulo de Usuario (Público)
 *   **Búsqueda de Certificados:** Los usuarios pueden buscar certificados ingresando su número de cédula.
-*   **Visualización de Detalles:** Muestra información relevante del certificado encontrado.
-*   **Descarga en PDF:** Permite descargar el certificado en formato PDF.
-*   **Envío por Correo Electrónico:** Opción para enviar el certificado a una dirección de email.
+*   **Visualización y Descarga en PDF:** Permite visualizar y descargar el certificado oficial en formato PDF, generado con una plantilla personalizada.
 
 ### Módulo de Administración
-*   **Autenticación Segura:** Acceso restringido para administradores.
-*   **Gestión de Administradores:**
-    *   Creación, edición y eliminación de cuentas de administrador.
+*   **Autenticación Segura:** Acceso restringido para administradores mediante usuario y contraseña.
 *   **Gestión de Certificados:**
-    *   Creación, edición y eliminación de registros de certificados.
-    *   Generación automática de archivos PDF para los certificados.
+    *   Listar todos los certificados existentes en la base de datos.
+    *   Crear nuevos registros de certificados.
+    *   Editar la información de certificados existentes.
+    *   Generar y regenerar los archivos PDF asociados a cada certificado.
 
 ## Tecnologías Utilizadas
 
-### Backend (Python - Flask)
-*   **Flask:** Microframework web para Python.
-*   **Flask-Cors:** Extensión para manejar Cross-Origin Resource Sharing (CORS).
-*   **python-dotenv:** Para la gestión de variables de entorno.
-*   **ReportLab:** Librería para la generación de documentos PDF.
-*   **psycopg2-binary:** Adaptador de PostgreSQL para Python.
-*   **Alembic:** Herramienta de migraciones de base de datos para SQLAlchemy (utilizado con PostgreSQL).
+*   **Backend:** Python 3.11, Flask, Gunicorn
+*   **Frontend:** HTML5, CSS3, JavaScript (Vanilla JS)
+*   **Base de Datos:** PostgreSQL
+*   **Librerías Clave:**
+    *   `psycopg2-binary`: Conector para PostgreSQL.
+    *   `Flask-Cors`: Para gestionar la comunicación entre frontend y backend.
+    *   `ReportLab`: Para la generación de los documentos PDF.
+    *   `Alembic`: Para gestionar las migraciones de la base de datos.
+    *   `python-dotenv`: Para manejar variables de entorno.
+*   **Despliegue:**
+    *   Frontend desplegado en **GitHub Pages**.
+    *   Backend y Base de Datos desplegados en **Render.com**.
 
-### Frontend (HTML, CSS, JavaScript)
-*   **HTML5:** Estructura de la aplicación web.
-*   **CSS3:** Estilos y diseño responsivo.
-*   **JavaScript (Vanilla JS):** Lógica interactiva del lado del cliente.
-*   **config.js:** Archivo de configuración para la URL base de la API.
+## Estructura Final del Proyecto
 
-## Estructura del Proyecto
+La estructura fue refactorizada para un despliegue estándar y robusto.
+certificadolotogemini/
+├── app.py # Archivo principal de Flask (en la raíz)
+├── requirements.txt # Dependencias de Python (en la raíz)
+├── runtime.txt # Especifica la versión de Python para Render (en la raíz)
+├── .gitignore
+├── README.md
+│
+├── backend/
+│ ├── .env # Archivo de configuración local (NO SUBIR A GITHUB)
+│ ├── alembic.ini # Configuración de Alembic
+│ ├── auth.py
+│ ├── create_admin.py # Script para crear el usuario admin
+│ ├── db.py
+│ ├── pdf_generator.py # Lógica para crear los PDFs
+│ │
+│ ├── certificates_generated/ # PDFs generados (ignorado por Git)
+│ ├── fonts/ # Fuentes personalizadas para los PDFs
+│ ├── migrations/ # Archivos de migración de Alembic
+│ ├── static/ # Plantilla de imagen para los PDFs
+│ └── routes/ # Archivos de rutas (admin, certificate, main)
+│
+└── frontend/
+├── index.html
+├── style.css
+├── script.js
+└── config.js```
+Guía de Instalación y Ejecución Local
+Sigue estos pasos para correr el proyecto en tu propia computadora.
+Requisitos Previos
+Git instalado.
+Python 3.11 instalado (y añadido al PATH).
+Node.js instalado (para la herramienta de despliegue gh-pages).
+PostgreSQL instalado y el servicio corriendo.
 
-El proyecto está dividido en dos directorios principales:
+1. Configuración del Backend
+Clona el repositorio y navega a la carpeta raíz del proyecto.
+Crea el entorno virtual usando Python 3.11:
+Bash
+py -3.11 -m venv backend/venv
 
-*   `backend/`: Contiene toda la lógica del servidor, la API RESTful, la gestión de la base de datos, la autenticación y la generación de certificados.
-    *   `app.py`: Punto de entrada de la aplicación Flask.
-    *   `auth.py`: Lógica de autenticación.
-    *   `db.py`: Configuración de la base de datos.
-    *   `schemas.py`: Definiciones de esquemas de datos.
-    *   `routes/`: Módulos para las diferentes rutas de la API (main, admin, certificate).
-    *   `migrations/`: Archivos de migración de la base de datos (Alembic).
-    *   `certificates_generated/`: Directorio donde se guardan los PDFs de los certificados generados.
-    *   `fonts/`: Fuentes utilizadas para la generación de PDFs.
-*   `frontend/`: Contiene la interfaz de usuario de la aplicación web.
-    *   `index.html`: Página principal de la aplicación.
-    *   `style.css`: Hoja de estilos.
-    *   `script.js`: Lógica del lado del cliente para interactuar con el backend.
-    *   `config.js`: Configuración del frontend, como la URL de la API.
+Activa el entorno virtual:
+Bash
+source backend/venv/Scripts/activate
 
-## Instalación y Configuración
-
-Para poner en marcha el proyecto, sigue los siguientes pasos:
-
-### 1. Clonar el Repositorio
-```bash
-git clone <URL_DEL_REPOSITORIO>
-cd certificadolotogemini
-```
-
-### 2. Configuración del Backend
-
-Navega al directorio `backend`:
-```bash
-cd backend
-```
-
-**Crear un entorno virtual e instalar dependencias:**
-```bash
-python -m venv venv
-source venv/bin/activate  # En Linux/macOS
-# o
-venv\Scripts\activate     # En Windows
+Instala las dependencias de Python:
+Bash
 pip install -r requirements.txt
-```
 
-**Configurar variables de entorno:**
-Crea un archivo `.env` en el directorio `backend/` con las siguientes variables (ejemplo):
-```
-SECRET_KEY="tu_clave_secreta_aqui"
-DATABASE_URL="postgresql://user:password@host:port/database_name"
-ADMIN_USERNAME="admin"
-ADMIN_PASSWORD="password"
-EMAIL_HOST="smtp.example.com"
-EMAIL_PORT="587"
-EMAIL_USERNAME="your_email@example.com"
-EMAIL_PASSWORD="your_email_password"
-```
-Asegúrate de reemplazar los valores con tu configuración real de base de datos y correo electrónico.
+Configura las variables de entorno:
+Crea un archivo llamado .env dentro de la carpeta backend/.
+Pega el siguiente contenido y rellena tus datos:
+Env
+SECRET_KEY="una-clave-secreta-muy-larga-y-segura"
+DATABASE_URL="postgresql://tu_usuario:tu_contraseña@localhost:5432/bd_certilotos"
 
-**Inicializar y aplicar migraciones de la base de datos:**
-```bash
-alembic upgrade head
-```
+Crea las tablas en la base de datos:
+Navega a la carpeta del backend: cd backend
 
-**Ejecutar el backend:**
-```bash
-flask run
-# o
-python app.py
-```
-El servidor backend se ejecutará en `http://127.0.0.1:5000` por defecto.
+Ejecuta Alembic: alembic upgrade head
+Vuelve a la raíz: cd ..
 
-### 3. Configuración del Frontend
+Crea tu usuario administrador:
+Bash
+python backend/create_admin.py
 
-Navega al directorio `frontend`:
-```bash
-cd frontend
-```
+2. Configuración del Frontend
+Abre el archivo frontend/config.js.
+Asegúrate de que la URL apunte a tu servidor local:
 
-**Configurar la URL de la API:**
-Abre `config.js` y asegúrate de que `API_BASE_URL` apunte a la dirección de tu backend (por defecto, `http://127.0.0.1:5000`).
-```javascript
-// frontend/config.js
+JavaScript
 const API_BASE_URL = 'http://127.0.0.1:5000';
-```
 
-**Abrir la aplicación:**
-Simplemente abre el archivo `index.html` en tu navegador web.
+3. ¡Poner a Funcionar la App!
+Siempre necesitarás dos servidores corriendo al mismo tiempo.
 
-## Uso
+Para iniciar el Backend (el cerebro):
+Abre una terminal en la raíz del proyecto.
 
-### Para Usuarios
-1.  Abre `frontend/index.html` en tu navegador.
-2.  Ingresa un número de cédula en el campo de búsqueda.
-3.  Si se encuentra el certificado, podrás verlo, descargarlo o enviarlo por correo.
+Activa el entorno: source backend/venv/Scripts/activate
+Ejecuta: python app.py
 
-### Para Administradores
-1.  Haz clic en "Iniciar Sesión" en la barra de navegación.
-2.  Ingresa las credenciales de administrador configuradas en el archivo `.env`.
-3.  Una vez autenticado, haz clic en "Panel de Administración" para acceder a las funciones de gestión.
+Deja esta terminal abierta.
+
+Para iniciar el Frontend (la cara):
+
+En VS Code, haz clic derecho sobre frontend/index.html.
+Selecciona "Open with Live Server".
+¡Ahora tu aplicación estará funcionando localmente!
+Personalización del Certificado
+
+Para cambiar la apariencia (posición, fuentes, colores, textos) de los certificados generados, edita la "ZONA DE PERSONALIZACIÓN" que se encuentra dentro del archivo backend/pdf_generator.py. Después de cada cambio, deberás reiniciar manualmente el servidor del backend para ver los resultados.
+
+
+
