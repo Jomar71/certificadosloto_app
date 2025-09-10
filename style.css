@@ -167,3 +167,15 @@ ul li button:hover {
 }
 
 /* Responsive Design */
+/* Mejora la compatibilidad móvil */
+@media (max-width: 768px) {
+    header nav button {
+        padding: 5px 10px;
+        font-size: 14px;
+    }
+
+    .search-container input[type="text"] {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
