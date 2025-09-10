@@ -17,7 +17,6 @@ from backend.routes.main import main_bp
 from backend.routes.admin import admin_bp
 from backend.routes.certificate import certificate_bp
 
-
 dotenv_path = os.path.join(os.path.dirname(__file__), 'backend', '.env')
 load_dotenv(dotenv_path=dotenv_path)
 
@@ -33,13 +32,12 @@ def create_app():
 
     # --- Configuración de CORS ---
     allowed_origins = [
-        "http://127.0.0.1:5500",
-        "https://jomar71.github.io"
-    ]
+    "http://127.0.0.1:5500",  # Para desarrollo local
+    "https://jomar71.github.io"  # Para producción
+]
     CORS(app, supports_credentials=True, origins=allowed_origins)
-    
-   
-    
+
+    # --- Registro de Blueprints ---
     app.register_blueprint(main_bp, url_prefix='/api')
     app.register_blueprint(admin_bp, url_prefix='/api')
     app.register_blueprint(certificate_bp, url_prefix='/api')
@@ -49,4 +47,4 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=False, port=5000)  # Desactivamos debug en producción

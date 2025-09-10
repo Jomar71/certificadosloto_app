@@ -167,15 +167,25 @@ ul li button:hover {
 }
 
 /* Responsive Design */
-/* Mejora la compatibilidad móvil */
+/* Mejoras para dispositivos móviles */
 @media (max-width: 768px) {
+    body {
+        font-size: 14px; /* Reduce el tamaño del texto */
+    }
+
     header nav button {
         padding: 5px 10px;
-        font-size: 14px;
+        font-size: 12px;
     }
 
     .search-container input[type="text"] {
-        width: 100%;
+        width: 100%; /* Asegura que el campo de búsqueda ocupe todo el ancho */
         margin-bottom: 10px;
+    }
+
+    form input[type="text"],
+    form input[type="password"],
+    form input[type="email"] {
+        width: 100%; /* Asegura que los campos de formulario sean responsivos */
     }
 }
