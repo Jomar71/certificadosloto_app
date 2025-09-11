@@ -5,7 +5,7 @@ from flask import Blueprint, request, jsonify, session
 from werkzeug.security import check_password_hash
 import traceback
 
-# ¡IMPORTACIÓN CORREGIDA! Ahora busca desde la raíz del proyecto.
+# ¡IMPORTACIONES CORREGIDAS! Ahora buscan desde la raíz del proyecto.
 from backend.db import get_db_connection, release_db_connection
 from backend.auth import admin_required
 
