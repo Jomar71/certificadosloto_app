@@ -167,25 +167,35 @@ ul li button:hover {
 }
 
 /* Responsive Design */
-/* Mejoras para dispositivos móviles */
+/* Estas reglas se aplican solo si el ancho de la pantalla es de 768px o menos */
 @media (max-width: 768px) {
-    body {
-        font-size: 14px; /* Reduce el tamaño del texto */
+
+    /* Hace que el contenedor principal ocupe casi todo el ancho */
+    main {
+        padding: 10px;
+        margin: 10px;
     }
 
-    header nav button {
-        padding: 5px 10px;
-        font-size: 12px;
+    /* Hace que los botones sean más grandes y fáciles de presionar */
+    button, .btn {
+        padding: 15px;
+        font-size: 1.1em;
+        width: 100%; /* Ocupan todo el ancho disponible */
+        box-sizing: border-box; /* Para que el padding no los haga más anchos */
     }
 
-    .search-container input[type="text"] {
-        width: 100%; /* Asegura que el campo de búsqueda ocupe todo el ancho */
-        margin-bottom: 10px;
+    /* Ajusta el tamaño de los campos de texto */
+    input[type="text"], input[type="password"], input[type="email"], input[type="date"] {
+        width: 100%;
+        padding: 15px;
+        font-size: 1em;
+        box-sizing: border-box;
     }
 
-    form input[type="text"],
-    form input[type="password"],
-    form input[type="email"] {
-        width: 100%; /* Asegura que los campos de formulario sean responsivos */
+    /* Mejora la navegación en la cabecera */
+    header nav {
+        display: flex;
+        flex-direction: column; /* Pone los botones uno debajo del otro */
+        gap: 10px; /* Añade un espacio entre los botones */
     }
 }
