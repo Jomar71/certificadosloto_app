@@ -7,7 +7,6 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime
 import traceback
 
-# ¡IMPORTACIONES CORREGIDAS!
 from backend.db import get_db_connection, release_db_connection
 from backend.auth import admin_required
 from backend.pdf_generator import generate_certificate_pdf
