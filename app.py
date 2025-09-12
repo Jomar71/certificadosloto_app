@@ -1,5 +1,6 @@
 # ===================================================================================
-# ARCHIVO FINAL, COMPLETO Y DEFINITIVO PARA: app.py
+# ARCHIVO FINAL, COMPLETO Y CORREGIDO PARA: app.py
+# Se restaura el bloque de arranque para la ejecución local.
 # ===================================================================================
 import os
 from flask import Flask
@@ -10,7 +11,7 @@ from dotenv import load_dotenv
 dotenv_path = os.path.join(os.path.dirname(__file__), 'backend', '.env')
 load_dotenv(dotenv_path=dotenv_path)
 
-# Importamos los módulos DESPUÉS de cargar el .env
+# Importamos los módulos
 from backend.routes.main import main_bp
 from backend.routes.admin import admin_bp
 from backend.routes.certificate import certificate_bp
@@ -20,7 +21,6 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'un-secreto-muy-seguro')
 
 # --- CONFIGURACIÓN DE CORS DEFINITIVA ---
-# Permite explícitamente tu sitio de GitHub Pages y tu entorno local
 CORS(
     app,
     origins=["https://jomar71.github.io", "http://127.0.0.1:5500"],
@@ -35,7 +35,10 @@ app.register_blueprint(certificate_bp, url_prefix='/api')
 
 @app.route('/')
 def index():
-    # Una ruta simple para verificar que el servidor está vivo
     return "El servidor backend de certificados está funcionando."
 
-# No necesitamos el bloque if __name__ == "__main__" para Render
+# --- ¡¡ESTE ES EL BLOQUE QUE FALTABA!! ---
+# Permite que el servidor se inicie cuando ejecutas 'python app.py'
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
+# -----------------------------------------
