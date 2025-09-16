@@ -53,3 +53,7 @@ def is_admin():
     else:
         # Este caso no debería ocurrir gracias a @admin_required, pero es una buena práctica
         return jsonify({"is_admin": False})
+# --- Endpoint de prueba para verificar CORS y conexión ---
+@main_bp.route('/test_cors', methods=['GET'])
+def test_cors():
+    return jsonify({"message": "CORS y conexión OK"}), 200

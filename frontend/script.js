@@ -129,3 +129,14 @@ document.addEventListener('DOMContentLoaded', function() {
     updateLoginUI();
     setupEventListeners();
 });
+    // --- FUNCIÓN DE DIAGNÓSTICO TEMPORAL ---
+    async function testCorsConnection() {
+        try {
+            const response = await fetchAPI('/test_cors');
+            const data = await response.json();
+            console.log('Respuesta del endpoint de prueba /test_cors:', data);
+        } catch (error) {
+            console.error('Error al llamar a /test_cors:', error);
+        }
+    }
+    testCorsConnection(); // Llama a la función de diagnóstico al iniciar
