@@ -1,3 +1,5 @@
 // Configuración de la URL del backend
-const API_BASE_URL = 'https://certificadosloto-app.onrender.com';
+const PROD_API_BASE_URL = 'https://certificadosloto-app.onrender.com';
+
+
 

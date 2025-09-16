@@ -4,7 +4,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- URLs y constantes ---
     // Esta URL se usará solo en el entorno local. Se reemplazará al desplegar.
-    const API_BASE_URL = 'http://127.0.0.1:5000';
 
     // --- Selección de Elementos ---
     // (Esta sección no cambia)
@@ -37,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', function() {
     'use strict';
 
-    const API_BASE_URL = 'http://127.0.0.1:5000'; // Se reemplaza al desplegar
 
     // --- FUNCIONES DE MANEJO DE LA UI ---
     function showSection(sectionId) {
@@ -53,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- FUNCIÓN CENTRAL PARA LLAMADAS A LA API ---
     async function fetchAPI(url, options = {}) {
         // En producción, la URL base se obtiene del archivo config.js
-        const finalUrl = (typeof PROD_API_BASE_URL !== 'undefined') ? `${PROD_API_BASE_URL}${url}` : `${API_BASE_URL}${url}`;
+        const finalUrl = `${PROD_API_BASE_URL}${url}`;
         
         options.credentials = 'include';
         options.mode = 'cors'; // Asegura que las peticiones sean CORS
