@@ -98,3 +98,72 @@ def update_certificate(cert_id):
         return jsonify({"message": f"Error interno: {e}"}), 500
     finally:
         if conn: release_db_connection(conn)
+@admin_bp.route('/admin/certificates', methods=['POST'])
+@admin_required
+def add_certificate():
+    data = request.get_json()
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # Inserta los datos iniciales sin la ruta del PDF
+        sql = """INSERT INTO certificadosloto 
+                 (tipo_documento, nombre_persona, apellido_persona, numero_identificacion, fecha_creacion, fecha_vencimiento, email_persona) 
+                 VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id_documento;"""
+        cur.execute(sql, (
+            data.get('tipo_documento'), data.get('nombre_persona'), data.get('apellido_persona'),
+            data.get('numero_identificacion'), data.get('fecha_creacion'), data.get('fecha_vencimiento'),
+            data.get('email_persona')
+        ))
+        new_cert_id = cur.fetchone()[0]
+
+        # Prepara datos para generar el PDF
+        pdf_data = data.copy()
+        pdf_data['id_documento'] = new_cert_id
+        pdf_data['fecha_creacion'] = datetime.strptime(data['fecha_creacion'], '%Y-%m-%d')
+
+        # Genera el PDF
+        pdf_filename = generate_certificate_pdf(pdf_data)
+
+        if pdf_filename:
+            # Actualiza el registro con la ruta del PDF
+            cur.execute("UPDATE certificadosloto SET ruta_pdf = %s WHERE id_documento = %s", (pdf_filename, new_cert_id))
+        else:
+            # Si la generación del PDF falla, revierte toda la transacción
+            conn.rollback()
+            raise Exception("La función generate_certificate_pdf devolvió None.")
+
+        # ¡¡ESTE ES EL PASO CRUCIAL QUE FALTABA!!
+        conn.commit()
+        
+        return jsonify({"message": "Certificado añadido exitosamente.", "id_documento": new_cert_id}), 201
+    except Exception as e:
+        if conn: conn.rollback()
+        traceback.print_exc()
+        return jsonify({"message": f"Error interno: {e}"}), 500
+    finally:
+        if conn: release_db_connection(conn)
+
+@admin_bp.route('/admin/certificates/<int:cert_id>', methods=['DELETE'])
+@admin_required
+def delete_certificate(cert_id):
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("DELETE FROM certificadosloto WHERE id_documento = %s;", (cert_id,))
+        
+        # ¡¡CONFIRMAR LA TRANSACCIÓN!!
+        conn.commit()
+        
+        if cur.rowcount > 0:
+            return jsonify({"message": "Certificado eliminado exitosamente."})
+        else:
+            return jsonify({"message": "Certificado no encontrado."}), 404
+    except Exception as e:
+        if conn: conn.rollback()
+        traceback.print_exc()
+        return jsonify({"message": f"Error interno: {e}"}), 500
+    finally:
+        if conn: release_db_connection(conn)
