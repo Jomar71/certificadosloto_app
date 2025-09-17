@@ -11,7 +11,7 @@ from backend.db import get_db_connection, release_db_connection
 
 certificate_bp = Blueprint('certificate', __name__)
 
-@certificate_bp.route('/certificates/search', methods=['GET'])
+@certificate_bp.route('/certificate/find', methods=['GET'])
 def search_certificate():
     """
     Busca un certificado por número de cédula. Versión a prueba de fallos.

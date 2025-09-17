@@ -121,6 +121,46 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
+        // Búsqueda de Certificado por Cédula
+        document.getElementById('searchCertBtn')?.addEventListener('click', async () => {
+            const cedula = document.getElementById('cedulaSearchInput').value.trim();
+            if (!cedula) {
+                alert('Por favor, ingresa un número de cédula.');
+                return;
+            }
+
+            const certificateResultDiv = document.getElementById('certificateResult');
+            const noCertificateFoundDiv = document.getElementById('noCertificateFound');
+            
+            try {
+                const response = await fetchAPI(`/certificate/find?cedula=${cedula}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('certTipoDocumento').textContent = data.tipo_documento;
+                    document.getElementById('certNombrePersona').textContent = data.nombre_persona;
+                    document.getElementById('certApellidoPersona').textContent = data.apellido_persona;
+                    document.getElementById('certNumeroIdentificacion').textContent = data.numero_identificacion;
+                    document.getElementById('certFechaCreacion').textContent = data.fecha_creacion;
+                    document.getElementById('certFechaVencimiento').textContent = data.fecha_vencimiento;
+                    
+                    // Guardar ID para descarga y email
+                    const downloadBtn = document.getElementById('downloadCertBtn');
+                    if(downloadBtn) downloadBtn.dataset.certId = data.id_documento;
+
+                    certificateResultDiv.style.display = 'block';
+                    noCertificateFoundDiv.style.display = 'none';
+                } else {
+                    certificateResultDiv.style.display = 'none';
+                    noCertificateFoundDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error al buscar certificado:', error);
+                alert('Hubo un problema al conectarse con el servidor.');
+                certificateResultDiv.style.display = 'none';
+                noCertificateFoundDiv.style.display = 'block';
+            }
+        });
         // (Aquí irían los listeners para la búsqueda, descarga, y el panel de admin)
     }
 
@@ -129,14 +169,3 @@ document.addEventListener('DOMContentLoaded', function() {
     updateLoginUI();
     setupEventListeners();
 });
-    // --- FUNCIÓN DE DIAGNÓSTICO TEMPORAL ---
-    async function testCorsConnection() {
-        try {
-            const response = await fetchAPI('/test_cors');
-            const data = await response.json();
-            console.log('Respuesta del endpoint de prueba /test_cors:', data);
-        } catch (error) {
-            console.error('Error al llamar a /test_cors:', error);
-        }
-    }
-    testCorsConnection(); // Llama a la función de diagnóstico al iniciar
