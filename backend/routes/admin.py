@@ -87,13 +87,10 @@ def update_certificate(cert_id):
         if pdf_filename:
             cur.execute("UPDATE certificadosloto SET ruta_pdf = %s WHERE id_documento = %s", (pdf_filename, cert_id))
         else:
-            conn.rollback()
             raise Exception("La función generate_certificate_pdf devolvió None.")
         
-        conn.commit()
         return jsonify({"message": "Certificado actualizado y PDF regenerado exitosamente."})
     except Exception as e:
-        if conn: conn.rollback()
         traceback.print_exc()
         return jsonify({"message": f"Error interno: {e}"}), 500
     finally:
@@ -131,15 +128,12 @@ def add_certificate():
             cur.execute("UPDATE certificadosloto SET ruta_pdf = %s WHERE id_documento = %s", (pdf_filename, new_cert_id))
         else:
             # Si la generación del PDF falla, revierte toda la transacción
-            conn.rollback()
             raise Exception("La función generate_certificate_pdf devolvió None.")
 
         # ¡¡ESTE ES EL PASO CRUCIAL QUE FALTABA!!
-        conn.commit()
         
         return jsonify({"message": "Certificado añadido exitosamente.", "id_documento": new_cert_id}), 201
     except Exception as e:
-        if conn: conn.rollback()
         traceback.print_exc()
         return jsonify({"message": f"Error interno: {e}"}), 500
     finally:
@@ -155,14 +149,12 @@ def delete_certificate(cert_id):
         cur.execute("DELETE FROM certificadosloto WHERE id_documento = %s;", (cert_id,))
         
         # ¡¡CONFIRMAR LA TRANSACCIÓN!!
-        conn.commit()
         
         if cur.rowcount > 0:
             return jsonify({"message": "Certificado eliminado exitosamente."})
         else:
             return jsonify({"message": "Certificado no encontrado."}), 404
     except Exception as e:
-        if conn: conn.rollback()
         traceback.print_exc()
         return jsonify({"message": f"Error interno: {e}"}), 500
     finally:

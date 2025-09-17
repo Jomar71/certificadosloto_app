@@ -8,7 +8,9 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 
 def get_db_connection():
     try:
-        return psycopg2.connect(DATABASE_URL)
+        conn = psycopg2.connect(DATABASE_URL)
+        conn.autocommit = True
+        return conn
     except Exception as e:
         print(f"ERROR al conectar a DB: {e}")
         return None
