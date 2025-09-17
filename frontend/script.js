@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const noCertificateFoundDiv = document.getElementById('noCertificateFound');
             
             try {
-                const response = await fetchAPI(`/certificate/find?cedula=${cedula}`);
+                const response = await fetchAPI(`/certificates/search?cedula=${cedula}`);
                 const data = await response.json();
 
                 if (response.ok) {
