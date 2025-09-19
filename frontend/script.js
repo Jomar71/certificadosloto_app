@@ -53,33 +53,42 @@ document.addEventListener('DOMContentLoaded', function() {
         // En producción, la URL base se obtiene del archivo config.js
         const finalUrl = `/api${url}`;
         
-        options.credentials = 'include';
-        options.mode = 'cors'; // Asegura que las peticiones sean CORS
+        // 'same-origin' es la configuración correcta ahora que todo se sirve desde el mismo dominio.
+        // El navegador enviará las cookies automáticamente.
+        options.credentials = 'same-origin';
         
         return fetch(finalUrl, options);
     }
 
     // --- LÓGICA DE AUTENTICACIÓN Y UI ---
     async function updateLoginUI() {
+        const loginBtn = document.getElementById('loginBtn');
+        const adminPanelBtn = document.getElementById('adminPanelBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+
         try {
             const response = await fetchAPI('/api/is_admin');
-            const data = await response.json();
             
-            const loginBtn = document.getElementById('loginBtn');
-            const adminPanelBtn = document.getElementById('adminPanelBtn');
-            const logoutBtn = document.getElementById('logoutBtn');
-            
-            if (data.is_admin) {
-                if (loginBtn) loginBtn.style.display = 'none';
-                if (adminPanelBtn) adminPanelBtn.style.display = 'inline-block';
-                if (logoutBtn) logoutBtn.style.display = 'inline-block';
+            if (response.ok) {
+                const data = await response.json();
+                if (data.is_admin) {
+                    // Usuario es admin
+                    if (loginBtn) loginBtn.style.display = 'none';
+                    if (adminPanelBtn) adminPanelBtn.style.display = 'inline-block';
+                    if (logoutBtn) logoutBtn.style.display = 'inline-block';
+                }
             } else {
+                // Usuario no es admin o no ha iniciado sesión
                 if (loginBtn) loginBtn.style.display = 'inline-block';
                 if (adminPanelBtn) adminPanelBtn.style.display = 'none';
                 if (logoutBtn) logoutBtn.style.display = 'none';
             }
         } catch (error) {
-            console.error('Error al verificar estado de autenticación:', error);
+            // Error de red, no de autenticación
+            console.error('Error de conexión al verificar estado de autenticación:', error);
+            if (loginBtn) loginBtn.style.display = 'inline-block';
+            if (adminPanelBtn) adminPanelBtn.style.display = 'none';
+            if (logoutBtn) logoutBtn.style.display = 'none';
         }
     }
 

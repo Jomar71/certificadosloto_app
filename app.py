@@ -33,13 +33,14 @@ def create_app():
     # y que pueden ser enviadas entre diferentes sitios (None).
     app.config['SESSION_COOKIE_SAMESITE'] = 'None'
     app.config['SESSION_COOKIE_SECURE'] = True
+    # ¡IMPORTANTE! Especifica el dominio para que las cookies funcionen en Render.
+    app.config['SESSION_COOKIE_DOMAIN'] = '.certificadosloto-app.onrender.com'
     # -----------------------------------------------------------
     
     # --- Configuración de CORS ---
+    # Ahora que todo se sirve desde el mismo dominio, solo necesitamos permitir nuestro propio origen.
     allowed_origins = [
-        "http://127.0.0.1:5500",      # Para tu Live Server local
-        "https://jomar71.github.io",   # Para tu sitio en GitHub Pages
-        "https://certificadosloto-app.onrender.com" # Para el frontend en producción
+        "https://certificadosloto-app.onrender.com"
     ]
     CORS(app, supports_credentials=True, origins=allowed_origins)
     
