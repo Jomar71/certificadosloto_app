@@ -5,7 +5,7 @@
 
 import os
 import sys
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 
@@ -25,7 +25,7 @@ dotenv_path = os.path.join(os.path.dirname(__file__), 'backend', '.env')
 load_dotenv(dotenv_path=dotenv_path)
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='../frontend', static_url_path='/')
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key-de-respaldo')
 
     # --- ¡¡ESTA ES LA CONFIGURACIÓN DE COOKIES DEFINITIVA!! ---
@@ -47,6 +47,15 @@ def create_app():
     app.register_blueprint(main_bp, url_prefix='/api')
     app.register_blueprint(admin_bp, url_prefix='/api')
     app.register_blueprint(certificate_bp, url_prefix='/api')
+
+    # --- Sirviendo el frontend ---
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def serve(path):
+        if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+            return send_from_directory(app.static_folder, path)
+        else:
+            return send_from_directory(app.static_folder, 'index.html')
 
     return app
 
