@@ -9,11 +9,6 @@ from flask import Flask, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-# --- Lógica de importación segura ---
-backend_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backend')
-if backend_path not in sys.path:
-    sys.path.insert(0, backend_path)
-
 from backend.routes.main import main_bp
 from backend.routes.admin import admin_bp
 from backend.routes.certificate import certificate_bp
