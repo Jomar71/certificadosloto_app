@@ -35,8 +35,9 @@ def create_app():
     app.config['SESSION_COOKIE_SECURE'] = True  # Requerido para HTTPS
 
     # --- Configuración de CORS ---
-    # Permite credenciales (cookies) desde el propio origen de la aplicación.
-    CORS(app, supports_credentials=True, origins=["https://certificadosloto-app.onrender.com"])
+    # Permite credenciales (cookies) y acepta peticiones de cualquier origen.
+    # Esta es la configuración más compatible para producción cuando el frontend y backend están unificados.
+    CORS(app, supports_credentials=True, origins="*")
 
     # --- Registrar los Blueprints de la API ---
     app.register_blueprint(main_bp, url_prefix='/api/auth')      # Rutas de autenticación
