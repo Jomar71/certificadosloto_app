@@ -13,7 +13,7 @@ from backend.pdf_generator import generate_certificate_pdf
 
 admin_bp = Blueprint('admin', __name__)
 
-@admin_bp.route('/admin/certificates', methods=['GET'])
+@admin_bp.route('/certificates', methods=['GET'])
 @admin_required
 def get_certificates():
     conn = None
@@ -31,7 +31,7 @@ def get_certificates():
         if conn: release_db_connection(conn)
 
 # --- ¡FUNCIÓN RESTAURADA! ---
-@admin_bp.route('/admin/certificates/<int:cert_id>', methods=['GET'])
+@admin_bp.route('/certificates/<int:cert_id>', methods=['GET'])
 @admin_required
 def get_single_certificate(cert_id):
     conn = None
@@ -59,7 +59,7 @@ def get_single_certificate(cert_id):
         if conn: release_db_connection(conn)
 
 # --- ¡FUNCIÓN RESTAURADA! ---
-@admin_bp.route('/admin/certificates/<int:cert_id>', methods=['PUT'])
+@admin_bp.route('/certificates/<int:cert_id>', methods=['PUT'])
 @admin_required
 def update_certificate(cert_id):
     data = request.get_json()
@@ -95,7 +95,7 @@ def update_certificate(cert_id):
         return jsonify({"message": f"Error interno: {e}"}), 500
     finally:
         if conn: release_db_connection(conn)
-@admin_bp.route('/admin/certificates', methods=['POST'])
+@admin_bp.route('/certificates', methods=['POST'])
 @admin_required
 def add_certificate():
     data = request.get_json()
@@ -139,7 +139,7 @@ def add_certificate():
     finally:
         if conn: release_db_connection(conn)
 
-@admin_bp.route('/admin/certificates/<int:cert_id>', methods=['DELETE'])
+@admin_bp.route('/certificates/<int:cert_id>', methods=['DELETE'])
 @admin_required
 def delete_certificate(cert_id):
     conn = None

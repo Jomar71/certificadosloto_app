@@ -11,7 +11,7 @@ from backend.db import get_db_connection, release_db_connection
 
 certificate_bp = Blueprint('certificate', __name__)
 
-@certificate_bp.route('/certificates/search', methods=['GET'])
+@certificate_bp.route('/search', methods=['GET'])
 def search_certificate():
     """
     Busca un certificado por número de cédula. Versión a prueba de fallos.
@@ -51,7 +51,7 @@ def search_certificate():
             release_db_connection(conn)
 
 
-@certificate_bp.route('/certificates/<int:cert_id>/download', methods=['GET'])
+@certificate_bp.route('/<int:cert_id>/download', methods=['GET'])
 def download_certificate(cert_id):
     """
     Busca el nombre del archivo PDF en la base de datos y lo envía para su descarga.

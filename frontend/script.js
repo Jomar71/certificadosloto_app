@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const logoutBtn = document.getElementById('logoutBtn');
 
         try {
-            const response = await fetchAPI('/api/is_admin');
+            const response = await fetchAPI('/auth/is_admin');
             
             if (response.ok) {
                 const data = await response.json();
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('loginBtn')?.addEventListener('click', () => showSection('loginSection'));
         document.getElementById('adminPanelBtn')?.addEventListener('click', () => showSection('adminPanelSection'));
         document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-            await fetchAPI('/api/logout_admin', { method: 'POST' });
+            await fetchAPI('/auth/logout_admin', { method: 'POST' });
             await updateLoginUI();
             showSection('homeSection');
         });
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (loginMessage) loginMessage.textContent = 'Procesando...';
             
             try {
-                const response = await fetchAPI('/api/login_admin', {
+                const response = await fetchAPI('/auth/login_admin', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -170,7 +170,55 @@ document.addEventListener('DOMContentLoaded', function() {
                 noCertificateFoundDiv.style.display = 'block';
             }
         });
-        // (Aquí irían los listeners para la búsqueda, descarga, y el panel de admin)
+        // Listener para el botón de descarga
+        document.getElementById('downloadCertBtn')?.addEventListener('click', function() {
+            const certId = this.dataset.certId;
+            if (certId) {
+                window.location.href = `/api/certificates/${certId}/download`;
+            }
+        });
+
+        // Lógica para el panel de administración
+        document.getElementById('adminPanelBtn')?.addEventListener('click', async () => {
+            showSection('adminPanelSection');
+            await loadAdminCertificates();
+        });
+    }
+
+    async function loadAdminCertificates() {
+        const certList = document.getElementById('adminCertificatesList');
+        if (!certList) return;
+
+        try {
+            const response = await fetchAPI('/admin/certificates');
+            if (!response.ok) {
+                certList.innerHTML = '<tr><td colspan="4">Error al cargar los certificados.</td></tr>';
+                return;
+            }
+            const certificates = await response.json();
+            if (certificates.length === 0) {
+                certList.innerHTML = '<tr><td colspan="4">No hay certificados para mostrar.</td></tr>';
+                return;
+            }
+
+            certList.innerHTML = ''; // Limpiar la lista
+            certificates.forEach(cert => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${cert.id_documento}</td>
+                    <td>${cert.nombre_persona} ${cert.apellido_persona}</td>
+                    <td>${cert.numero_identificacion}</td>
+                    <td>
+                        <button class="btn-edit" data-id="${cert.id_documento}">Editar</button>
+                        <button class="btn-delete" data-id="${cert.id_documento}">Eliminar</button>
+                    </td>
+                `;
+                certList.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error cargando certificados para admin:', error);
+            certList.innerHTML = '<tr><td colspan="4">Error de conexión al cargar certificados.</td></tr>';
+        }
     }
 
     // --- INICIALIZACIÓN ---

@@ -85,7 +85,19 @@
                 <button id="addCertBtn" type="button">Añadir Certificado</button> <!-- Corregido -->
                 <p id="addCertMessage" class="message" style="display:none;"></p>
             </div>
-            <ul id="certificateList"></ul>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                        <th>Cédula</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="adminCertificatesList">
+                    <!-- Las filas de los certificados se insertarán aquí -->
+                </tbody>
+            </table>
         </section>
     </main>
 

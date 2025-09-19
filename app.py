@@ -25,35 +25,36 @@ dotenv_path = os.path.join(os.path.dirname(__file__), 'backend', '.env')
 load_dotenv(dotenv_path=dotenv_path)
 
 def create_app():
-    app = Flask(__name__, static_folder='../frontend', static_url_path='/')
+    # Configura la carpeta 'frontend' para servir archivos estáticos usando una ruta absoluta.
+    frontend_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'frontend')
+    app = Flask(__name__, static_folder=frontend_folder)
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key-de-respaldo')
 
-    # --- ¡¡ESTA ES LA CONFIGURACIÓN DE COOKIES DEFINITIVA!! ---
-    # Para producción (HTTPS), le decimos al navegador que las cookies son seguras
-    # y que pueden ser enviadas entre diferentes sitios (None).
-    # --- Configuración de Cookies para Same-Origin ---
-    # 'Lax' es el valor predeterminado y seguro para aplicaciones servidas desde el mismo dominio.
+    # --- Configuración de Cookies para Same-Origin (Producción) ---
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    app.config['SESSION_COOKIE_SECURE'] = True # Mantener para HTTPS en producción
-    # Ya no se necesita SESSION_COOKIE_DOMAIN al ser same-origin.
-    # -----------------------------------------------------------
-    
-    # --- Configuración de CORS ---
-    # supports_credentials permite que las cookies se envíen en las peticiones.
-    # No se especifica 'origins' porque ahora todo es same-origin.
-    CORS(app, supports_credentials=True)
-    
-    # --- Registrar los Blueprints ---
-    app.register_blueprint(main_bp, url_prefix='/api')
-    app.register_blueprint(admin_bp, url_prefix='/api')
-    app.register_blueprint(certificate_bp, url_prefix='/api')
+    app.config['SESSION_COOKIE_SECURE'] = True  # Requerido para HTTPS
 
-    # --- Sirviendo el frontend ---
+    # --- Configuración de CORS ---
+    # Permite credenciales (cookies) desde el propio origen de la aplicación.
+    CORS(app, supports_credentials=True, origins=["https://certificadosloto-app.onrender.com"])
+
+    # --- Registrar los Blueprints de la API ---
+    app.register_blueprint(main_bp, url_prefix='/api/auth')      # Rutas de autenticación
+    app.register_blueprint(admin_bp, url_prefix='/api/admin')      # Rutas de administración
+    app.register_blueprint(certificate_bp, url_prefix='/api/certificates') # Rutas públicas de certificados
+
+    # --- Rutas para servir el Frontend ---
+    # Sirve el index.html para la ruta raíz y cualquier otra ruta no-API.
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
-    def serve(path):
-        if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+    def serve_frontend(path):
+        # Construye la ruta al archivo solicitado
+        requested_path = os.path.join(app.static_folder, path)
+
+        # Si el path es un archivo que existe, lo sirve.
+        if path != "" and os.path.exists(requested_path):
             return send_from_directory(app.static_folder, path)
+        # Si no, sirve el index.html (comportamiento de SPA).
         else:
             return send_from_directory(app.static_folder, 'index.html')
 
