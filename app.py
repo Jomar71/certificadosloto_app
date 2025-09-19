@@ -38,7 +38,8 @@ def create_app():
     # --- Configuración de CORS ---
     allowed_origins = [
         "http://127.0.0.1:5500",      # Para tu Live Server local
-        "https://jomar71.github.io"   # Para tu sitio en GitHub Pages
+        "https://jomar71.github.io",   # Para tu sitio en GitHub Pages
+        "https://certificadosloto-app.onrender.com" # Para el frontend en producción
     ]
     CORS(app, supports_credentials=True, origins=allowed_origins)
     

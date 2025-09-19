@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- FUNCIÓN CENTRAL PARA LLAMADAS A LA API ---
     async function fetchAPI(url, options = {}) {
         // En producción, la URL base se obtiene del archivo config.js
-        const finalUrl = `${PROD_API_BASE_URL}${url}`;
+        const finalUrl = `${PROD_API_BASE_URL}/api${url}`;
         
         options.credentials = 'include';
         options.mode = 'cors'; // Asegura que las peticiones sean CORS
