@@ -31,18 +31,17 @@ def create_app():
     # --- ¡¡ESTA ES LA CONFIGURACIÓN DE COOKIES DEFINITIVA!! ---
     # Para producción (HTTPS), le decimos al navegador que las cookies son seguras
     # y que pueden ser enviadas entre diferentes sitios (None).
-    app.config['SESSION_COOKIE_SAMESITE'] = 'None'
-    app.config['SESSION_COOKIE_SECURE'] = True
-    # ¡IMPORTANTE! Especifica el dominio para que las cookies funcionen en Render.
-    app.config['SESSION_COOKIE_DOMAIN'] = '.certificadosloto-app.onrender.com'
+    # --- Configuración de Cookies para Same-Origin ---
+    # 'Lax' es el valor predeterminado y seguro para aplicaciones servidas desde el mismo dominio.
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_SECURE'] = True # Mantener para HTTPS en producción
+    # Ya no se necesita SESSION_COOKIE_DOMAIN al ser same-origin.
     # -----------------------------------------------------------
     
     # --- Configuración de CORS ---
-    # Ahora que todo se sirve desde el mismo dominio, solo necesitamos permitir nuestro propio origen.
-    allowed_origins = [
-        "https://certificadosloto-app.onrender.com"
-    ]
-    CORS(app, supports_credentials=True, origins=allowed_origins)
+    # supports_credentials permite que las cookies se envíen en las peticiones.
+    # No se especifica 'origins' porque ahora todo es same-origin.
+    CORS(app, supports_credentials=True)
     
     # --- Registrar los Blueprints ---
     app.register_blueprint(main_bp, url_prefix='/api')
