@@ -51,11 +51,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- FUNCIÓN CENTRAL PARA LLAMADAS A LA API ---
     async function fetchAPI(url, options = {}) {
         // En producción, la URL base se obtiene del archivo config.js
-        const finalUrl = `/api${url}`;
+        const finalUrl = PROD_API_BASE_URL ? `${PROD_API_BASE_URL}api${url}` : `/api${url}`;
         
         // 'same-origin' es la configuración correcta ahora que todo se sirve desde el mismo dominio.
         // El navegador enviará las cookies automáticamente.
-        options.credentials = 'same-origin';
+        // Si PROD_API_BASE_URL está definida, significa que estamos en un entorno de producción
+        // donde el frontend y el backend pueden estar en diferentes orígenes.
+        // En este caso, 'include' es necesario para enviar cookies.
+        // Si no, asumimos 'same-origin' para un despliegue unificado.
+        options.credentials = PROD_API_BASE_URL ? 'include' : 'same-origin';
         
         return fetch(finalUrl, options);
     }
