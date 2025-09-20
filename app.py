@@ -21,8 +21,10 @@ load_dotenv(dotenv_path=dotenv_path)
 
 def create_app():
     # Configura la carpeta 'frontend' para servir archivos estáticos usando una ruta absoluta.
-    frontend_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'frontend')
-    app = Flask(__name__, static_folder=frontend_folder)
+    # Configura la carpeta estática para que sea la raíz del proyecto
+    # Esto es más robusto para Render si los archivos se colocan directamente en la raíz
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    app = Flask(__name__, static_folder=project_root)
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key-de-respaldo')
 
     # --- Configuración de Cookies para Same-Origin (Producción) ---
@@ -44,15 +46,18 @@ def create_app():
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve_frontend(path):
-        # Construye la ruta al archivo solicitado
-        requested_path = os.path.join(app.static_folder, path)
+        # Intenta servir el archivo desde la carpeta 'frontend'
+        frontend_path = os.path.join(project_root, 'frontend', path)
+        if os.path.exists(frontend_path) and os.path.isfile(frontend_path):
+            return send_from_directory(os.path.join(project_root, 'frontend'), path)
+        
+        # Si no se encuentra en 'frontend', intenta servirlo desde la raíz del proyecto
+        root_path = os.path.join(project_root, path)
+        if os.path.exists(root_path) and os.path.isfile(root_path):
+            return send_from_directory(project_root, path)
 
-        # Si el path es un archivo que existe, lo sirve.
-        if path != "" and os.path.exists(requested_path):
-            return send_from_directory(app.static_folder, path)
-        # Si no, sirve el index.html (comportamiento de SPA).
-        else:
-            return send_from_directory(app.static_folder, 'index.html')
+        # Si no es un archivo, o no se encuentra, sirve el index.html (comportamiento de SPA)
+        return send_from_directory(os.path.join(project_root, 'frontend'), 'index.html')
 
     return app
 
