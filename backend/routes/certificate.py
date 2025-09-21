@@ -39,7 +39,6 @@ def search_certificate():
                 "fecha_vencimiento": cert_data[6].strftime('%Y-%m-%d') if cert_data[6] else None,
                 "ruta_pdf": cert_data[7], "email_persona": cert_data[8]
             }
-            current_app.logger.info(f"Certificado encontrado: cedula={cedula}, data={certificate}")
             return jsonify(certificate)
         else:
             return jsonify({"message": "No se encontró ningún certificado con la cédula proporcionada."}), 404
@@ -68,16 +67,13 @@ def download_certificate(cert_id):
         result = cur.fetchone()
         cur.close()
 
-        current_app.logger.info(f"Descarga de certificado: cert_id={cert_id}, resultado_db={result}")
-
         if result and result[0]:
             pdf_filename = result[0]
             # Usamos una ruta absoluta para máxima fiabilidad
-            # current_app.root_path es la raíz de la aplicación Flask (certificadolotogemini)
-            pdf_directory = os.path.join(current_app.root_path, 'backend', 'certificates_generated')
+            backend_folder = os.path.dirname(os.path.abspath(__file__))
+            pdf_directory = os.path.join(backend_folder, '..', 'certificates_generated')
             
             if not os.path.exists(os.path.join(pdf_directory, pdf_filename)):
-                current_app.logger.warning(f"Archivo PDF no encontrado: {os.path.join(pdf_directory, pdf_filename)}")
                 return "El archivo PDF no se encuentra en el servidor, necesita ser generado por un administrador.", 404
 
             return send_from_directory(

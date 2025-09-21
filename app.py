@@ -9,9 +9,6 @@ from flask import Flask, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-from backend.routes.main import main_bp
-from backend.routes.admin import admin_bp
-from backend.routes.certificate import certificate_bp
 # NO se importa 'init_pool'
 from backend.db import get_db_connection
 
@@ -37,6 +34,11 @@ def create_app():
     CORS(app, supports_credentials=True, origins="*")
 
     # --- Registrar los Blueprints de la API ---
+    # Importar blueprints dentro de la función para asegurar el registro en entornos de despliegue
+    from backend.routes.main import main_bp
+    from backend.routes.admin import admin_bp
+    from backend.routes.certificate import certificate_bp
+
     app.register_blueprint(main_bp, url_prefix='/api/auth')      # Rutas de autenticación
     app.register_blueprint(admin_bp, url_prefix='/api/admin')      # Rutas de administración
     app.register_blueprint(certificate_bp, url_prefix='/api/certificates') # Rutas públicas de certificados

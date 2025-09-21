@@ -1,0 +1,20 @@
+databases:
+  - name: postgres
+    databaseName: cert_app_db
+    user: cert_app_user
+
+services:
+  - type: web
+    name: cert-app
+    runtime: python
+    buildCommand: "pip install -r backend/requirements.txt"
+    startCommand: "gunicorn app:app"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: postgres
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: "3.10.6"
