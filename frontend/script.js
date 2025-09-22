@@ -186,6 +186,74 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('adminPanelBtn')?.addEventListener('click', async () => {
             showSection('adminPanelSection');
             await loadAdminCertificates();
+            // También cargamos la lista de administradores al abrir el panel
+            await loadAdminUsers();
+        });
+
+        // Botones para mostrar formularios en el panel de admin
+        document.getElementById('showAddAdminFormBtn')?.addEventListener('click', () => {
+            const form = document.getElementById('addAdminForm');
+            if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.getElementById('showAddCertFormBtn')?.addEventListener('click', () => {
+            const form = document.getElementById('addCertForm');
+            if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Botón para añadir un nuevo administrador
+        document.getElementById('addAdminBtn')?.addEventListener('click', async () => {
+            const user = document.getElementById('newAdminUser').value;
+            const pass = document.getElementById('newAdminPass').value;
+            const messageEl = document.getElementById('addAdminMessage');
+
+            if (!user || !pass) {
+                if (messageEl) messageEl.textContent = 'Usuario y contraseña son requeridos.';
+                return;
+            }
+
+            const response = await fetchAPI('/admin/admins', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ login_user: user, login_pass: pass })
+            });
+
+            const data = await response.json();
+            if (messageEl) messageEl.textContent = data.message;
+            
+            if (response.ok) {
+                await loadAdminUsers(); // Recargar la lista
+                document.getElementById('newAdminUser').value = '';
+                document.getElementById('newAdminPass').value = '';
+            }
+        });
+
+        // Botón para añadir un nuevo certificado
+        document.getElementById('addCertBtn')?.addEventListener('click', async () => {
+            const certData = {
+                tipo_documento: document.getElementById('newCertTipoDocumento').value,
+                nombre_persona: document.getElementById('newCertNombrePersona').value,
+                apellido_persona: document.getElementById('newCertApellidoPersona').value,
+                numero_identificacion: document.getElementById('newCertNumeroIdentificacion').value,
+                fecha_creacion: document.getElementById('newCertFechaCreacion').value,
+                fecha_vencimiento: document.getElementById('newCertFechaVencimiento').value,
+                email_persona: document.getElementById('newCertEmailPersona').value
+            };
+            const messageEl = document.getElementById('addCertMessage');
+
+            const response = await fetchAPI('/admin/certificates', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(certData)
+            });
+
+            const data = await response.json();
+            if (messageEl) messageEl.textContent = data.message;
+
+            if (response.ok) {
+                await loadAdminCertificates(); // Recargar la lista
+                document.getElementById('addCertForm').reset(); // Limpiar formulario
+            }
         });
     }
 
@@ -222,6 +290,30 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Error cargando certificados para admin:', error);
             certList.innerHTML = '<tr><td colspan="4">Error de conexión al cargar certificados.</td></tr>';
+        }
+    }
+
+    async function loadAdminUsers() {
+        const adminList = document.getElementById('adminList');
+        if (!adminList) return;
+
+        try {
+            const response = await fetchAPI('/admin/admins');
+            if (!response.ok) {
+                adminList.innerHTML = '<li>Error al cargar administradores.</li>';
+                return;
+            }
+            const admins = await response.json();
+            adminList.innerHTML = ''; // Limpiar
+            admins.forEach(admin => {
+                const li = document.createElement('li');
+                li.textContent = admin.login_user;
+                // Aquí se podrían añadir botones de editar/eliminar para admins
+                adminList.appendChild(li);
+            });
+        } catch (error) {
+            console.error('Error cargando administradores:', error);
+            adminList.innerHTML = '<li>Error de conexión.</li>';
         }
     }
 
