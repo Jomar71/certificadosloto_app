@@ -11,10 +11,51 @@ from dotenv import load_dotenv
 
 # NO se importa 'init_pool'
 from backend.db import get_db_connection
+import subprocess
+import time
+from werkzeug.security import generate_password_hash
 
 # Carga el archivo .env desde la carpeta 'backend'
 dotenv_path = os.path.join(os.path.dirname(__file__), 'backend', '.env')
 load_dotenv(dotenv_path=dotenv_path)
+
+def initialize_database():
+    """Asegura que las tablas de la BD existan y que haya un admin inicial."""
+    print("Inicializando la base de datos...")
+    try:
+        # Ejecutar Alembic para crear/actualizar tablas
+        # Usamos una ruta absoluta para alembic.ini para robustez en Render
+        alembic_ini_path = os.path.join(os.path.dirname(__file__), 'backend', 'alembic.ini')
+        subprocess.run(['alembic', '-c', alembic_ini_path, 'upgrade', 'head'], check=True)
+        print("Migración de Alembic completada.")
+
+        # Crear admin inicial si no existe
+        conn = get_db_connection()
+        if conn:
+            with conn.cursor() as cur:
+                admin_user = os.getenv('ADMIN_USER', 'admin')
+                cur.execute("SELECT admin_id FROM administradores WHERE login_user = %s", (admin_user,))
+                if cur.fetchone() is None:
+                    print(f"Creando usuario administrador inicial: {admin_user}")
+                    admin_pass = os.getenv('ADMIN_PASS')
+                    if not admin_pass:
+                        print("ADVERTENCIA: La variable de entorno ADMIN_PASS no está configurada. No se creará el admin.")
+                        return
+                    
+                    hashed_pass = generate_password_hash(admin_pass)
+                    cur.execute(
+                        "INSERT INTO administradores (login_user, login_pass) VALUES (%s, %s)",
+                        (admin_user, hashed_pass)
+                    )
+                    conn.commit()
+                    print("Usuario administrador creado exitosamente.")
+                else:
+                    print("El usuario administrador ya existe.")
+            conn.close()
+    except subprocess.CalledProcessError as e:
+        print(f"Error durante la migración de Alembic: {e}")
+    except Exception as e:
+        print(f"Error al inicializar la base de datos: {e}")
 
 def create_app():
     # Configura la carpeta 'frontend' para servir archivos estáticos usando una ruta absoluta.
@@ -65,6 +106,11 @@ def create_app():
 
 # --- Creación y Ejecución de la Aplicación ---
 app = create_app()
+
+# --- Inicialización de la Base de Datos ---
+# Esto se ejecuta solo cuando el servidor se inicia, no en cada recarga.
+with app.app_context():
+    initialize_database()
 
 if __name__ == "__main__":
     port = int(os.getenv('PORT', 5000))

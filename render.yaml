@@ -7,7 +7,7 @@ services:
   - type: web
     name: cert-app
     runtime: python
-    buildCommand: "pip install -r backend/requirements.txt"
+    buildCommand: "pip install -r backend/requirements.txt && alembic -c backend/alembic.ini upgrade head && python backend/create_admin.py"
     startCommand: "gunicorn app:app"
     envVars:
       - key: DATABASE_URL
@@ -18,3 +18,7 @@ services:
         generateValue: true
       - key: PYTHON_VERSION
         value: "3.10.6"
+      - key: ADMIN_USER
+        value: "admin"
+      - key: ADMIN_PASS
+        value: "tu_contraseña_segura" # ¡Cambia esto por una contraseña segura!
