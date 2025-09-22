@@ -89,6 +89,7 @@ def update_certificate(cert_id):
         else:
             raise Exception("La función generate_certificate_pdf devolvió None.")
         
+        conn.commit()
         return jsonify({"message": "Certificado actualizado y PDF regenerado exitosamente."})
     except Exception as e:
         traceback.print_exc()
@@ -132,6 +133,8 @@ def add_certificate():
 
         # ¡¡ESTE ES EL PASO CRUCIAL QUE FALTABA!!
         
+        conn.commit()
+        
         return jsonify({"message": "Certificado añadido exitosamente.", "id_documento": new_cert_id}), 201
     except Exception as e:
         traceback.print_exc()
@@ -151,6 +154,7 @@ def delete_certificate(cert_id):
         # ¡¡CONFIRMAR LA TRANSACCIÓN!!
         
         if cur.rowcount > 0:
+            conn.commit()
             return jsonify({"message": "Certificado eliminado exitosamente."})
         else:
             return jsonify({"message": "Certificado no encontrado."}), 404
