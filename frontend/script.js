@@ -111,7 +111,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('loginForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
             const loginMessage = document.getElementById('loginMessage');
-            if (loginMessage) loginMessage.textContent = 'Procesando...';
+            if (loginMessage) {
+                loginMessage.textContent = 'Procesando...';
+                loginMessage.style.display = 'block';
+            }
             
             try {
                 const response = await fetchAPI('/auth/login_admin', {
@@ -126,6 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (response.ok) {
                     await updateLoginUI();
                     showSection('homeSection');
+                    if (loginMessage) loginMessage.style.display = 'none'; // Ocultar al tener éxito
                 } else {
                     if (loginMessage) loginMessage.textContent = data.message;
                 }
@@ -208,7 +212,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const messageEl = document.getElementById('addAdminMessage');
 
             if (!user || !pass) {
-                if (messageEl) messageEl.textContent = 'Usuario y contraseña son requeridos.';
+                if (messageEl) {
+                    messageEl.textContent = 'Usuario y contraseña son requeridos.';
+                    messageEl.style.display = 'block';
+                }
                 return;
             }
 
@@ -219,12 +226,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const data = await response.json();
-            if (messageEl) messageEl.textContent = data.message;
+            if (messageEl) {
+                messageEl.textContent = data.message;
+                messageEl.style.display = 'block';
+            }
             
             if (response.ok) {
-                await loadAdminUsers(); // Recargar la lista
                 document.getElementById('newAdminUser').value = '';
                 document.getElementById('newAdminPass').value = '';
+                await loadAdminUsers(); // Recargar la lista de administradores
             }
         });
 
@@ -248,13 +258,127 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const data = await response.json();
-            if (messageEl) messageEl.textContent = data.message;
+            if (messageEl) {
+                messageEl.textContent = data.message;
+                messageEl.style.display = 'block';
+            }
 
             if (response.ok) {
                 await loadAdminCertificates(); // Recargar la lista
                 document.getElementById('addCertForm').reset(); // Limpiar formulario
             }
         });
+
+        // --- DELEGACIÓN DE EVENTOS PARA BOTONES DE LA TABLA DE CERTIFICADOS ---
+        document.getElementById('adminCertificatesList')?.addEventListener('click', function(e) {
+            const target = e.target;
+            const certId = target.dataset.id;
+
+            if (target.classList.contains('btn-delete')) {
+                handleDeleteCertificate(certId);
+            } else if (target.classList.contains('btn-edit')) {
+                handleEditCertificate(certId);
+            }
+        });
+
+        // --- EVENTOS DEL MODAL DE EDICIÓN ---
+        const editModal = document.getElementById('editCertModal');
+        const closeBtn = editModal?.querySelector('.close-btn');
+        const saveCertBtn = document.getElementById('saveCertBtn');
+
+        closeBtn?.addEventListener('click', () => {
+            if (editModal) editModal.style.display = 'none';
+        });
+
+        saveCertBtn?.addEventListener('click', async () => {
+            const certId = document.getElementById('editCertId').value;
+            const updatedData = {
+                tipo_documento: document.getElementById('editCertTipoDocumento').value,
+                nombre_persona: document.getElementById('editCertNombrePersona').value,
+                apellido_persona: document.getElementById('editCertApellidoPersona').value,
+                numero_identificacion: document.getElementById('editCertNumeroIdentificacion').value,
+                fecha_creacion: document.getElementById('editCertFechaCreacion').value,
+                fecha_vencimiento: document.getElementById('editCertFechaVencimiento').value,
+                email_persona: document.getElementById('editCertEmailPersona').value
+            };
+
+            try {
+                const response = await fetchAPI(`/admin/certificates/${certId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
+
+                if (response.ok) {
+                    alert('Certificado actualizado con éxito.');
+                    if (editModal) editModal.style.display = 'none';
+                    await loadAdminCertificates(); // Recargar la lista
+                } else {
+                    const data = await response.json();
+                    alert(`Error al actualizar: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Error al guardar cambios del certificado:', error);
+                alert('Error de conexión al guardar los cambios.');
+            }
+        });
+    }
+
+    async function handleDeleteCertificate(certId) {
+        if (!confirm(`¿Estás seguro de que quieres eliminar el certificado con ID ${certId}?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetchAPI(`/admin/certificates/${certId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('Certificado eliminado con éxito.');
+                await loadAdminCertificates(); // Recargar la lista
+            } else {
+                const data = await response.json();
+                alert(`Error al eliminar: ${data.message}`);
+            }
+        } catch (error) {
+            console.error('Error al eliminar certificado:', error);
+            alert('Error de conexión al intentar eliminar el certificado.');
+        }
+    }
+
+    async function handleEditCertificate(certId) {
+        const modal = document.getElementById('editCertModal');
+        if (!modal) return;
+
+        try {
+            const response = await fetchAPI(`/admin/certificates/${certId}`);
+            if (!response.ok) {
+                alert('No se pudieron cargar los datos del certificado.');
+                return;
+            }
+            const cert = await response.json();
+
+            // Rellenar el formulario del modal
+            document.getElementById('editCertId').value = cert.id_documento;
+            document.getElementById('editCertTipoDocumento').value = cert.tipo_documento;
+            document.getElementById('editCertNombrePersona').value = cert.nombre_persona;
+            document.getElementById('editCertApellidoPersona').value = cert.apellido_persona;
+            document.getElementById('editCertNumeroIdentificacion').value = cert.numero_identificacion;
+            document.getElementById('editCertFechaCreacion').value = cert.fecha_creacion;
+            document.getElementById('editCertFechaVencimiento').value = cert.fecha_vencimiento;
+            document.getElementById('editCertEmailPersona').value = cert.email_persona || '';
+            
+            // Mostrar la ruta del PDF (no editable directamente)
+            const rutaPdfSpan = document.getElementById('displayEditCertRutaPdf');
+            if (rutaPdfSpan) rutaPdfSpan.textContent = cert.ruta_pdf || 'No disponible';
+
+            modal.style.display = 'block';
+
+        } catch (error) {
+            console.error('Error al obtener datos del certificado para editar:', error);
+            alert('Error de conexión al cargar los datos para editar.');
+        }
     }
 
     async function loadAdminCertificates() {

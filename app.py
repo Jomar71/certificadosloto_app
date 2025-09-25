@@ -9,8 +9,8 @@ from flask import Flask, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-# NO se importa 'init_pool'
-from backend.db import get_db_connection
+# Se importan las funciones necesarias de la base de datos
+from backend.db import get_db_connection, release_db_connection
 
 # Carga el archivo .env desde la carpeta 'backend'
 dotenv_path = os.path.join(os.path.dirname(__file__), 'backend', '.env')
@@ -63,8 +63,47 @@ def create_app():
 
     return app
 
+# --- Función para Inicializar la Base de Datos ---
+def init_db():
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Crear la tabla de administradores si no existe
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS administradoresloto (
+                id_admin SERIAL PRIMARY KEY,
+                login_user VARCHAR(255) UNIQUE NOT NULL,
+                login_pass VARCHAR(255) NOT NULL
+            );
+        """)
+
+        # Verificar si ya existe algún administrador
+        cur.execute("SELECT COUNT(*) FROM administradoresloto")
+        if cur.fetchone()[0] == 0:
+            # Insertar un administrador por defecto si la tabla está vacía
+            # Contraseña en texto plano (NO RECOMENDADO PARA PRODUCCIÓN)
+            cur.execute(
+                "INSERT INTO administradoresloto (login_user, login_pass) VALUES (%s, %s)",
+                ('admin', 'password')
+            )
+            print("Tabla 'administradoresloto' creada y administrador por defecto insertado.")
+        
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        print(f"Error al inicializar la base de datos: {e}")
+    finally:
+        if conn:
+            release_db_connection(conn)
+
 # --- Creación y Ejecución de la Aplicación ---
 app = create_app()
+
+# --- Inicializar la Base de Datos al Arrancar ---
+with app.app_context():
+    init_db()
 
 if __name__ == "__main__":
     port = int(os.getenv('PORT', 5000))

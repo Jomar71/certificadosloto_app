@@ -163,3 +163,52 @@ def delete_certificate(cert_id):
         return jsonify({"message": f"Error interno: {e}"}), 500
     finally:
         if conn: release_db_connection(conn)
+
+# --- GESTIÓN DE ADMINISTRADORES ---
+
+@admin_bp.route('/admins', methods=['GET'])
+@admin_required
+def get_admins():
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT id_admin, login_user FROM administradoresloto ORDER BY login_user")
+        admins = [{"id_admin": row[0], "login_user": row[1]} for row in cur.fetchall()]
+        cur.close()
+        return jsonify(admins)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"message": "Error al cargar administradores"}), 500
+    finally:
+        if conn: release_db_connection(conn)
+
+@admin_bp.route('/admins', methods=['POST'])
+@admin_required
+def add_admin():
+    data = request.get_json()
+    login_user = data.get('login_user')
+    login_pass = data.get('login_pass')
+
+    if not login_user or not login_pass:
+        return jsonify({"message": "Usuario y contraseña son requeridos."}), 400
+
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # Idealmente, aquí se debería hashear la contraseña antes de guardarla.
+        # Por simplicidad, la guardamos en texto plano (NO RECOMENDADO PARA PRODUCCIÓN).
+        sql = "INSERT INTO administradoresloto (login_user, login_pass) VALUES (%s, %s) RETURNING id_admin;"
+        cur.execute(sql, (login_user, login_pass))
+        new_admin_id = cur.fetchone()[0]
+        conn.commit()
+        
+        return jsonify({"message": "Administrador añadido exitosamente.", "id_admin": new_admin_id}), 201
+    except Exception as e:
+        traceback.print_exc()
+        if conn: conn.rollback()
+        return jsonify({"message": f"Error interno: {e}"}), 500
+    finally:
+        if conn: release_db_connection(conn)
