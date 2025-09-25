@@ -89,3 +89,46 @@ def download_certificate(cert_id):
     finally:
         if conn:
             release_db_connection(conn)
+
+@certificate_bp.route('/<int:cert_id>/send_email', methods=['POST'])
+def send_certificate_email(cert_id):
+    """
+    Simula el envío de un certificado por correo electrónico.
+    """
+    data = request.get_json()
+    email = data.get('email')
+
+    if not email:
+        return jsonify({"message": "La dirección de correo es requerida."}), 400
+
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT ruta_pdf, nombre_persona FROM certificadosloto WHERE id_documento = %s", (cert_id,))
+        result = cur.fetchone()
+        cur.close()
+
+        if result and result[0]:
+            pdf_filename = result[0]
+            nombre_persona = result[1]
+            
+            # --- SIMULACIÓN DE ENVÍO DE CORREO ---
+            # En una implementación real, aquí iría la lógica para enviar el correo
+            # con el archivo adjunto (usando Flask-Mail, smtplib, etc.).
+            print("="*50)
+            print(f"SIMULACIÓN: Enviando correo a: {email}")
+            print(f"Asunto: Su certificado de {nombre_persona}")
+            print(f"Adjunto: {pdf_filename}")
+            print(f"ID de Certificado: {cert_id}")
+            print("="*50)
+            
+            return jsonify({"message": f"El certificado ha sido enviado exitosamente a {email}."})
+        else:
+            return jsonify({"message": "No se encontró el certificado para enviar."}), 404
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"message": "Error interno del servidor al procesar el envío."}), 500
+    finally:
+        if conn:
+            release_db_connection(conn)

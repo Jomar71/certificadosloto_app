@@ -164,6 +164,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Guardar ID para descarga y email
                     const downloadBtn = document.getElementById('downloadCertBtn');
                     if(downloadBtn) downloadBtn.dataset.certId = data.id_documento;
+                    
+                    // También guardamos el ID en el botón de email
+                    const sendEmailBtn = document.getElementById('sendEmailCertBtn');
+                    if(sendEmailBtn) sendEmailBtn.dataset.certId = data.id_documento;
+
 
                     certificateResultDiv.style.display = 'block';
                     noCertificateFoundDiv.style.display = 'none';
@@ -183,6 +188,49 @@ document.addEventListener('DOMContentLoaded', function() {
             const certId = this.dataset.certId;
             if (certId) {
                 window.location.href = `/api/certificates/${certId}/download`;
+            }
+        });
+
+        // Listener para el botón de enviar por email
+        document.getElementById('sendEmailCertBtn')?.addEventListener('click', async function() {
+            const emailInput = document.getElementById('emailRecipientInput');
+            const certId = this.dataset.certId;
+
+            // Si el campo de email no es visible, lo mostramos y cambiamos el texto del botón
+            if (emailInput.style.display === 'none') {
+                emailInput.style.display = 'inline-block';
+                this.textContent = 'Confirmar Envío';
+                emailInput.focus();
+                return; // Salimos para esperar la confirmación del usuario
+            }
+
+            // Si el campo ya es visible, procedemos a enviar
+            const email = emailInput.value.trim();
+            if (!email) {
+                alert('Por favor, ingresa una dirección de correo.');
+                return;
+            }
+
+            if (certId) {
+                try {
+                    const response = await fetchAPI(`/certificates/${certId}/send_email`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email })
+                    });
+                    const data = await response.json();
+                    alert(data.message);
+
+                    if (response.ok) {
+                        // Ocultar campo y restaurar botón tras envío exitoso
+                        emailInput.style.display = 'none';
+                        emailInput.value = '';
+                        this.textContent = 'Enviar por Email';
+                    }
+                } catch (error) {
+                    console.error('Error al enviar certificado por email:', error);
+                    alert('Error de conexión al intentar enviar el correo.');
+                }
             }
         });
 
