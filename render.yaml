@@ -7,7 +7,7 @@ services:
   - type: web
     name: cert-app
     runtime: python
-    buildCommand: "pip install -r backend/requirements.txt && alembic -c backend/alembic.ini upgrade head && python backend/create_admin.py && python backend/update_passwords.py"
+    buildCommand: "pip install -r backend/requirements.txt && alembic -c backend/alembic.ini upgrade head && python backend/create_admin.py"
     startCommand: "gunicorn app:app"
     envVars:
       - key: DATABASE_URL

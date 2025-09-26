@@ -6,28 +6,20 @@ from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash
 import psycopg2
 
-# --- Configuración ---
-# Puedes cambiar estos valores al nombre de usuario y contraseña que prefieras
-NEW_ADMIN_USER = "admin"
-NEW_ADMIN_PASS = "admin123" # Te sugiero usar una contraseña un poco más segura
-# ---------------------
-
-# Añadir el directorio raíz del proyecto al path de Python para encontrar módulos
-# Esto es necesario para poder llamar a este script desde la raíz
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, project_root)
-
-# Ahora cargamos las variables de entorno que están en la raíz
-# El archivo .env debe estar en la carpeta 'backend/'
+# Cargar variables de entorno para obtener las credenciales del administrador
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path=dotenv_path)
 
+# Leer credenciales desde variables de entorno, con valores por defecto
+ADMIN_USER = os.getenv('ADMIN_USER', 'admin')
+ADMIN_PASS = os.getenv('ADMIN_PASS', 'admin123')
 
 def create_admin_user():
     """
-    Crea o actualiza el usuario administrador en la base de datos.
+    Crea o actualiza el usuario administrador en la base de datos
+    utilizando las variables de entorno.
     """
-    print(f"Intentando crear/actualizar el usuario administrador '{NEW_ADMIN_USER}'...")
+    print(f"Intentando crear/actualizar el usuario administrador '{ADMIN_USER}'...")
     
     db_url = os.getenv('DATABASE_URL')
     if not db_url:
@@ -41,27 +33,27 @@ def create_admin_user():
         cur = conn.cursor()
 
         # Hashear la contraseña para guardarla de forma segura
-        hashed_password = generate_password_hash(NEW_ADMIN_PASS)
+        hashed_password = generate_password_hash(ADMIN_PASS)
 
-        # 1. Revisar si el usuario ya existe en la tabla 'administradores'
-        cur.execute("SELECT admin_id FROM administradores WHERE login_user = %s", (NEW_ADMIN_USER,))
+        # 1. Revisar si el usuario ya existe en la tabla 'administradoresloto'
+        cur.execute("SELECT id_admin FROM administradoresloto WHERE login_user = %s", (ADMIN_USER,))
         existing_user = cur.fetchone()
 
         if existing_user:
             # 2a. Si ya existe, actualiza su contraseña
-            cur.execute("UPDATE administradores SET login_pass = %s WHERE login_user = %s", (hashed_password, NEW_ADMIN_USER))
+            cur.execute("UPDATE administradoresloto SET login_pass = %s WHERE login_user = %s", (hashed_password, ADMIN_USER))
             print("\n" + "="*50)
             print("¡ÉXITO!")
-            print(f"El usuario '{NEW_ADMIN_USER}' ya existía.")
-            print(f"Su contraseña ha sido actualizada a: '{NEW_ADMIN_PASS}'")
+            print(f"El usuario '{ADMIN_USER}' ya existía.")
+            print(f"Su contraseña ha sido actualizada.")
             print("="*50 + "\n")
         else:
             # 2b. Si no existe, lo crea
-            cur.execute("INSERT INTO administradores (login_user, login_pass) VALUES (%s, %s)", (NEW_ADMIN_USER, hashed_password))
+            cur.execute("INSERT INTO administradoresloto (login_user, login_pass) VALUES (%s, %s)", (ADMIN_USER, hashed_password))
             print("\n" + "="*50)
             print("¡ÉXITO!")
-            print(f"Usuario administrador '{NEW_ADMIN_USER}' creado correctamente.")
-            print(f"Ahora puedes iniciar sesión con la contraseña: '{NEW_ADMIN_PASS}'")
+            print(f"Usuario administrador '{ADMIN_USER}' creado correctamente.")
+            print("Ahora puedes iniciar sesión con la contraseña configurada en las variables de entorno.")
             print("="*50 + "\n")
         
         # 3. Confirmar y cerrar la conexión
@@ -70,7 +62,7 @@ def create_admin_user():
         conn.close()
 
     except psycopg2.errors.UndefinedTable:
-        print("\nERROR: La tabla 'administradores' no existe.")
+        print("\nERROR: La tabla 'administradoresloto' no existe.")
         print("Asegúrate de haber ejecutado las migraciones de Alembic primero ('alembic upgrade head').")
     except Exception as e:
         print(f"\nOcurrió un error inesperado: {e}")
