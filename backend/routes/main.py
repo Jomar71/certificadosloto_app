@@ -23,21 +23,16 @@ def login_admin():
         if not conn: return jsonify({"message": "Error de conexión con la base de datos"}), 500
         
         cur = conn.cursor()
-        # --- CORRECCIÓN CRÍTICA ---
-        # 1. Se usa la tabla correcta: "administradoresloto".
-        # 2. Se seleccionan las columnas correctas: "id_admin".
-        # 3. Se busca tanto por usuario como por contraseña en texto plano.
+        # Se busca al administrador por su nombre de usuario
         cur.execute(
-            "SELECT id_admin, login_user FROM administradoresloto WHERE login_user = %s AND login_pass = %s",
-            (data['login_user'], data['login_pass'])
+            "SELECT id_admin, login_user, login_pass FROM administradoresloto WHERE login_user = %s",
+            (data['login_user'],)
         )
         admin = cur.fetchone()
         cur.close()
 
-        # --- CORRECCIÓN CRÍTICA ---
-        # Se elimina check_password_hash porque las contraseñas se guardan en texto plano.
-        # Simplemente verificamos si la consulta devolvió un administrador.
-        if admin:
+        # Se verifica si el administrador existe y si la contraseña coincide con el hash guardado
+        if admin and check_password_hash(admin[2], data['login_pass']):
             session.permanent = True
             session['admin_id'] = admin[0]
             session['login_user'] = admin[1]

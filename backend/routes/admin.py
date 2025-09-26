@@ -6,6 +6,7 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
 import traceback
+from werkzeug.security import generate_password_hash
 
 from backend.db import get_db_connection, release_db_connection
 from backend.auth import admin_required
@@ -198,10 +199,10 @@ def add_admin():
         conn = get_db_connection()
         cur = conn.cursor()
         
-        # Idealmente, aquí se debería hashear la contraseña antes de guardarla.
-        # Por simplicidad, la guardamos en texto plano (NO RECOMENDADO PARA PRODUCCIÓN).
+        # Se hashea la contraseña antes de guardarla en la base de datos
+        hashed_pass = generate_password_hash(login_pass)
         sql = "INSERT INTO administradoresloto (login_user, login_pass) VALUES (%s, %s) RETURNING id_admin;"
-        cur.execute(sql, (login_user, login_pass))
+        cur.execute(sql, (login_user, hashed_pass))
         new_admin_id = cur.fetchone()[0]
         conn.commit()
         
