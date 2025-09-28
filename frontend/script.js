@@ -413,8 +413,9 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('editCertNombrePersona').value = cert.nombre_persona;
             document.getElementById('editCertApellidoPersona').value = cert.apellido_persona;
             document.getElementById('editCertNumeroIdentificacion').value = cert.numero_identificacion;
-            document.getElementById('editCertFechaCreacion').value = cert.fecha_creacion;
-            document.getElementById('editCertFechaVencimiento').value = cert.fecha_vencimiento;
+            // Asegurarse de que las fechas se asignen correctamente, incluso si son nulas
+            document.getElementById('editCertFechaCreacion').value = cert.fecha_creacion || '';
+            document.getElementById('editCertFechaVencimiento').value = cert.fecha_vencimiento || '';
             document.getElementById('editCertEmailPersona').value = cert.email_persona || '';
             
             // Mostrar la ruta del PDF (no editable directamente)

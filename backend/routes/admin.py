@@ -81,7 +81,11 @@ def update_certificate(cert_id):
 
         pdf_data = data.copy()
         pdf_data['id_documento'] = cert_id
-        pdf_data['fecha_creacion'] = datetime.strptime(data['fecha_creacion'], '%Y-%m-%d')
+        # Convertir fechas de string a objeto datetime para el generador de PDF
+        if data.get('fecha_creacion'):
+            pdf_data['fecha_creacion'] = datetime.strptime(data['fecha_creacion'], '%Y-%m-%d')
+        if data.get('fecha_vencimiento'):
+            pdf_data['fecha_vencimiento'] = datetime.strptime(data['fecha_vencimiento'], '%Y-%m-%d')
         
         pdf_filename = generate_certificate_pdf(pdf_data)
 
@@ -120,7 +124,11 @@ def add_certificate():
         # Prepara datos para generar el PDF
         pdf_data = data.copy()
         pdf_data['id_documento'] = new_cert_id
-        pdf_data['fecha_creacion'] = datetime.strptime(data['fecha_creacion'], '%Y-%m-%d')
+        # Convertir fechas de string a objeto datetime para el generador de PDF
+        if data.get('fecha_creacion'):
+            pdf_data['fecha_creacion'] = datetime.strptime(data['fecha_creacion'], '%Y-%m-%d')
+        if data.get('fecha_vencimiento'):
+            pdf_data['fecha_vencimiento'] = datetime.strptime(data['fecha_vencimiento'], '%Y-%m-%d')
 
         # Genera el PDF
         pdf_filename = generate_certificate_pdf(pdf_data)

@@ -64,6 +64,33 @@ def generate_certificate_pdf(certificate_data):
         id_color = '#873233'
         id_x = width / 1.7
         id_y = 240
+
+        # --- FECHA DE CREACIÓN ---
+        fecha_creacion_obj = certificate_data.get('fecha_creacion')
+        if fecha_creacion_obj:
+            mes_creacion_en = fecha_creacion_obj.strftime("%B")
+            mes_creacion_es = meses_es.get(mes_creacion_en, mes_creacion_en)
+            fecha_creacion_text = f"Dado el: {fecha_creacion_obj.day} de {mes_creacion_es} de {fecha_creacion_obj.year}"
+        else:
+            fecha_creacion_text = "Da el: N/A"
+        
+        fecha_font = texto_font_name
+        fecha_size = 11
+        fecha_color = '#873233' # Color negro
+        fecha_creacion_x = width / 2.0  - 80  # = 400 - 150 = 250
+        fecha_creacion_y = 190 # Ajustado para mejor visibilidad
+
+        # --- FECHA DE VENCIMIENTO ---
+        fecha_vencimiento_obj = certificate_data.get('fecha_vencimiento')
+        if fecha_vencimiento_obj:
+            mes_vencimiento_en = fecha_vencimiento_obj.strftime("%B")
+            mes_vencimiento_es = meses_es.get(mes_vencimiento_en, mes_vencimiento_en)
+            fecha_vencimiento_text = f"Valido Hasta el: {fecha_vencimiento_obj.day} de {mes_vencimiento_es} de {fecha_vencimiento_obj.year}"
+        else:
+            fecha_vencimiento_text = "Fecha de finalización: N/A"
+            
+        fecha_vencimiento_x = width / 2.0 + 115  # = 400 + 150 = 550
+        fecha_vencimiento_y = 190 # Ajustado para mejor visibilidad
         # ==========================================================================
 
         c.setFont(full_name_font, full_name_size)
@@ -73,6 +100,12 @@ def generate_certificate_pdf(certificate_data):
         c.setFont(id_font, id_size)
         c.setFillColor(HexColor(id_color))
         c.drawCentredString(id_x, id_y, id_text)
+
+        # Dibujar las fechas
+        c.setFont(fecha_font, fecha_size)
+        c.setFillColor(HexColor(fecha_color))
+        c.drawCentredString(fecha_creacion_x, fecha_creacion_y, fecha_creacion_text)
+        c.drawCentredString(fecha_vencimiento_x, fecha_vencimiento_y, fecha_vencimiento_text)
         
         c.save()
         return filename
