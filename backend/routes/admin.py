@@ -21,8 +21,22 @@ def get_certificates():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT id_documento, nombre_persona, apellido_persona, numero_identificacion FROM certificadosloto ORDER BY id_documento DESC")
-        certificates = [{"id_documento": row, "nombre_persona": row, "apellido_persona": row, "numero_identificacion": row} for row in cur.fetchall()]
+        cur.execute("SELECT id_documento, tipo_documento, nombre_persona, apellido_persona, numero_identificacion, fecha_creacion, fecha_vencimiento, email_persona FROM certificadosloto ORDER BY id_documento DESC")
+        
+        # Mapear los resultados de la consulta a un formato de diccionario
+        certificates_raw = cur.fetchall()
+        certificates = []
+        for row in certificates_raw:
+            certificates.append({
+                "id_documento": row,
+                "tipo_documento": row,
+                "nombre_persona": row,
+                "apellido_persona": row,
+                "numero_identificacion": row,
+                "fecha_creacion": row.strftime('%Y-%m-%d') if row else None,
+                "fecha_vencimiento": row.strftime('%Y-%m-%d') if row else None,
+                "email_persona": row
+            })
         cur.close()
         return jsonify(certificates)
     except Exception as e:
@@ -45,8 +59,11 @@ def get_single_certificate(cert_id):
         cur.close()
         if cert_data:
             certificate = {
-                "id_documento": cert_data, "tipo_documento": cert_data, "nombre_persona": cert_data,
-                "apellido_persona": cert_data, "numero_identificacion": cert_data,
+                "id_documento": cert_data,
+                "tipo_documento": cert_data,
+                "nombre_persona": cert_data,
+                "apellido_persona": cert_data,
+                "numero_identificacion": cert_data,
                 "fecha_creacion": cert_data.strftime('%Y-%m-%d') if cert_data else None,
                 "fecha_vencimiento": cert_data.strftime('%Y-%m-%d') if cert_data else None,
                 "email_persona": cert_data
@@ -98,7 +115,6 @@ def add_certificate():
         conn = get_db_connection()
         cur = conn.cursor()
         
-        # Inserta los datos iniciales sin la ruta del PDF
         sql = """INSERT INTO certificadosloto 
                  (tipo_documento, nombre_persona, apellido_persona, numero_identificacion, fecha_creacion, fecha_vencimiento, email_persona) 
                  VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id_documento;"""
@@ -107,7 +123,7 @@ def add_certificate():
             data.get('numero_identificacion'), data.get('fecha_creacion'), data.get('fecha_vencimiento'),
             data.get('email_persona')
         ))
-        new_cert_id = cur.fetchone()
+        new_cert_id = cur.fetchone() # Obtener solo el ID
         
         conn.commit()
         
@@ -151,7 +167,15 @@ def get_admins():
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("SELECT id_admin, login_user FROM administradoresloto ORDER BY login_user")
-        admins = [{"id_admin": row, "login_user": row} for row in cur.fetchall()]
+        
+        # Mapear los resultados de la consulta a un formato de diccionario
+        admins_raw = cur.fetchall()
+        admins = []
+        for row in admins_raw:
+            admins.append({
+                "id_admin": row,
+                "login_user": row
+            })
         cur.close()
         return jsonify(admins)
     except Exception as e:
@@ -179,7 +203,7 @@ def add_admin():
         hashed_pass = generate_password_hash(login_pass)
         sql = "INSERT INTO administradoresloto (login_user, login_pass) VALUES (%s, %s) RETURNING id_admin;"
         cur.execute(sql, (login_user, hashed_pass))
-        new_admin_id = cur.fetchone()
+        new_admin_id = cur.fetchone() # Obtener solo el ID
         conn.commit()
         
         return jsonify({"message": "Administrador añadido exitosamente.", "id_admin": new_admin_id}), 201

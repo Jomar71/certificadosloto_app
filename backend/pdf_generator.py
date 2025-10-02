@@ -11,6 +11,7 @@ from reportlab.lib.colors import HexColor
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from io import BytesIO # Importar BytesIO para manejar el buffer en memoria
+from datetime import datetime # Importar datetime
 
 meses_es = {"January":"Enero", "February":"Febrero", "March":"Marzo", "April":"Abril", "May":"Mayo", "June":"Junio", "July":"Julio", "August":"Agosto", "September":"Septiembre", "October":"Octubre", "November":"Noviembre", "December":"Diciembre"}
 
@@ -56,6 +57,7 @@ def generate_certificate_pdf(certificate_data, output_buffer=None):
         # ==========================================================================
         # === ZONA DE PERSONALIZACIÓN ===
         # ==========================================================================
+        # Asegurarse de que los datos se extraen correctamente del diccionario
         nombre = certificate_data.get('nombre_persona', '')
         apellido = certificate_data.get('apellido_persona', '')
         full_name = f"{nombre} {apellido}".strip().title()
@@ -74,7 +76,7 @@ def generate_certificate_pdf(certificate_data, output_buffer=None):
 
         # --- FECHA DE CREACIÓN ---
         fecha_creacion_obj = certificate_data.get('fecha_creacion')
-        if fecha_creacion_obj:
+        if fecha_creacion_obj and isinstance(fecha_creacion_obj, datetime):
             mes_creacion_en = fecha_creacion_obj.strftime("%B")
             mes_creacion_es = meses_es.get(mes_creacion_en, mes_creacion_en)
             fecha_creacion_text = f"Dado el: {fecha_creacion_obj.day} de {mes_creacion_es} de {fecha_creacion_obj.year}"
@@ -89,7 +91,7 @@ def generate_certificate_pdf(certificate_data, output_buffer=None):
 
         # --- FECHA DE VENCIMIENTO ---
         fecha_vencimiento_obj = certificate_data.get('fecha_vencimiento')
-        if fecha_vencimiento_obj:
+        if fecha_vencimiento_obj and isinstance(fecha_vencimiento_obj, datetime):
             mes_vencimiento_en = fecha_vencimiento_obj.strftime("%B")
             mes_vencimiento_es = meses_es.get(mes_vencimiento_en, mes_vencimiento_en)
             fecha_vencimiento_text = f"Valido Hasta el: {fecha_vencimiento_obj.day} de {mes_vencimiento_es} de {fecha_vencimiento_obj.year}"

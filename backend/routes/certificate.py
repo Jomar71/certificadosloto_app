@@ -30,24 +30,26 @@ def search_certificate():
             return jsonify({"message": "Error crítico: No se pudo conectar a la base de datos."}), 500
 
         cur = conn.cursor()
-        # Se elimina 'ruta_pdf' de la selección
+        # Seleccionar explícitamente todas las columnas necesarias
         cur.execute("SELECT id_documento, tipo_documento, nombre_persona, apellido_persona, numero_identificacion, fecha_creacion, fecha_vencimiento, email_persona FROM certificadosloto WHERE numero_identificacion = %s", (cedula,))
-        cert_data = cur.fetchone()
+        cert_data_raw = cur.fetchone()
         cur.close()
         
-        if cert_data:
+        if cert_data_raw:
             certificate = {
-                "id_documento": cert_data, "tipo_documento": cert_data, "nombre_persona": cert_data,
-                "apellido_persona": cert_data, "numero_identificacion": cert_data,
-                "fecha_creacion": cert_data.strftime('%Y-%m-%d') if cert_data else None,
-                "fecha_vencimiento": cert_data.strftime('%Y-%m-%d') if cert_data else None,
-                "email_persona": cert_data
+                "id_documento": cert_data_raw,
+                "tipo_documento": cert_data_raw,
+                "nombre_persona": cert_data_raw,
+                "apellido_persona": cert_data_raw,
+                "numero_identificacion": cert_data_raw,
+                "fecha_creacion": cert_data_raw.strftime('%Y-%m-%d') if cert_data_raw else None,
+                "fecha_vencimiento": cert_data_raw.strftime('%Y-%m-%d') if cert_data_raw else None,
+                "email_persona": cert_data_raw
             }
             return jsonify(certificate)
         else:
             return jsonify({"message": "No se encontró ningún certificado con la cédula proporcionada."}), 404
     except Exception:
-        # Si algo falla, lo imprimirá en la terminal y devolverá un error claro
         traceback.print_exc()
         return jsonify({"message": "Error interno del servidor al buscar el certificado."}), 500
     finally:
@@ -67,7 +69,7 @@ def download_certificate(cert_id):
             return "Error de conexión con la base de datos", 500
 
         cur = conn.cursor()
-        # Seleccionar todos los datos necesarios para generar el PDF
+        # Seleccionar explícitamente todos los datos necesarios para generar el PDF
         cur.execute("SELECT id_documento, tipo_documento, nombre_persona, apellido_persona, numero_identificacion, fecha_creacion, fecha_vencimiento, email_persona FROM certificadosloto WHERE id_documento = %s", (cert_id,))
         cert_data_raw = cur.fetchone()
         cur.close()
@@ -125,7 +127,7 @@ def send_certificate_email(cert_id):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        # Seleccionar todos los datos necesarios para generar el PDF para el correo
+        # Seleccionar explícitamente todos los datos necesarios para generar el PDF para el correo
         cur.execute("SELECT id_documento, tipo_documento, nombre_persona, apellido_persona, numero_identificacion, fecha_creacion, fecha_vencimiento, email_persona FROM certificadosloto WHERE id_documento = %s", (cert_id,))
         cert_data_raw = cur.fetchone()
         cur.close()
