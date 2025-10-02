@@ -10,18 +10,25 @@ from reportlab.lib.pagesizes import letter, landscape
 from reportlab.lib.colors import HexColor
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from io import BytesIO # Importar BytesIO para manejar el buffer en memoria
 
 meses_es = {"January":"Enero", "February":"Febrero", "March":"Marzo", "April":"Abril", "May":"Mayo", "June":"Junio", "July":"Julio", "August":"Agosto", "September":"Septiembre", "October":"Octubre", "November":"Noviembre", "December":"Diciembre"}
 
-def generate_certificate_pdf(certificate_data):
+def generate_certificate_pdf(certificate_data, output_buffer=None):
     try:
         backend_folder = os.path.dirname(os.path.abspath(__file__))
         filename = f"certificado_{certificate_data.get('numero_identificacion', 'sincodigo')}_{certificate_data.get('id_documento', 'sinid')}.pdf"
-        output_dir = os.path.join(backend_folder, 'certificates_generated')
-        os.makedirs(output_dir, exist_ok=True)
-        filepath = os.path.join(output_dir, filename)
+        
+        if output_buffer is None:
+            # Si no se proporciona un buffer, guardar en el disco (comportamiento original)
+            output_dir = os.path.join(backend_folder, 'certificates_generated')
+            os.makedirs(output_dir, exist_ok=True)
+            filepath = os.path.join(output_dir, filename)
+            c = canvas.Canvas(filepath, pagesize=landscape(letter))
+        else:
+            # Si se proporciona un buffer, escribir en él
+            c = canvas.Canvas(output_buffer, pagesize=landscape(letter))
 
-        c = canvas.Canvas(filepath, pagesize=landscape(letter))
         width, height = landscape(letter)
 
         # --- REGISTRO DE FUENTES (CON MÉTODO A PRUEBA DE FALLOS) ---
