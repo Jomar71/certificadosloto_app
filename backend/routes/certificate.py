@@ -70,11 +70,13 @@ def download_certificate(cert_id):
         if result and result[0]:
             pdf_filename = result[0]
             # Usamos una ruta absoluta para máxima fiabilidad
-            backend_folder = os.path.dirname(os.path.abspath(__file__))
-            pdf_directory = os.path.join(backend_folder, '..', 'certificates_generated')
-            
+            # La forma más robusta de obtener la carpeta de certificados
+            # Se asume que app.py está en la raíz del proyecto
+            pdf_directory = os.path.join(current_app.root_path, 'backend', 'certificates_generated')
+
+            # Comprobar si el archivo existe antes de intentar enviarlo
             if not os.path.exists(os.path.join(pdf_directory, pdf_filename)):
-                return "El archivo PDF no se encuentra en el servidor, necesita ser generado por un administrador.", 404
+                return "El archivo PDF no se encuentra en el servidor. Es posible que necesite ser generado por un administrador.", 404
 
             return send_from_directory(
                 directory=pdf_directory,

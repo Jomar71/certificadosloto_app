@@ -98,6 +98,7 @@ def update_certificate(cert_id):
         return jsonify({"message": "Certificado actualizado y PDF regenerado exitosamente."})
     except Exception as e:
         traceback.print_exc()
+        if conn: conn.rollback()
         return jsonify({"message": f"Error interno: {e}"}), 500
     finally:
         if conn: release_db_connection(conn)
@@ -147,6 +148,7 @@ def add_certificate():
         return jsonify({"message": "Certificado añadido exitosamente.", "id_documento": new_cert_id}), 201
     except Exception as e:
         traceback.print_exc()
+        if conn: conn.rollback()
         return jsonify({"message": f"Error interno: {e}"}), 500
     finally:
         if conn: release_db_connection(conn)
@@ -166,9 +168,11 @@ def delete_certificate(cert_id):
             conn.commit()
             return jsonify({"message": "Certificado eliminado exitosamente."})
         else:
+            conn.rollback()
             return jsonify({"message": "Certificado no encontrado."}), 404
     except Exception as e:
         traceback.print_exc()
+        if conn: conn.rollback()
         return jsonify({"message": f"Error interno: {e}"}), 500
     finally:
         if conn: release_db_connection(conn)
@@ -217,7 +221,9 @@ def add_admin():
         return jsonify({"message": "Administrador añadido exitosamente.", "id_admin": new_admin_id}), 201
     except Exception as e:
         traceback.print_exc()
-        if conn: conn.rollback()
+        if conn:
+            conn.rollback()
         return jsonify({"message": f"Error interno: {e}"}), 500
     finally:
-        if conn: release_db_connection(conn)
+        if conn:
+            release_db_connection(conn)
