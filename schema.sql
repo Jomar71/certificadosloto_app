@@ -16,5 +16,6 @@ CREATE TABLE IF NOT EXISTS certificadosloto (
     numero_identificacion VARCHAR(255) UNIQUE NOT NULL,
     fecha_creacion DATE NOT NULL,
     fecha_vencimiento DATE,
-    email_persona VARCHAR(255)
+    email_persona VARCHAR(255),
+    ruta_pdf VARCHAR(255)
 );

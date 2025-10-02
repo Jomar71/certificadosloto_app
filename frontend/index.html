@@ -11,6 +11,7 @@
         <h1>App de Certificados</h1>
         <nav>
             <button id="loginBtn">Iniciar Sesión</button>
+            <button id="viewCertsBtn">Ver Certificados</button>
             <button id="adminPanelBtn" style="display:none;">Panel de Administración</button>
             <button id="logoutBtn" style="display:none;">Cerrar Sesión</button>
         </nav>
@@ -95,6 +96,26 @@
                     </tr>
                 </thead>
                 <tbody id="adminCertificatesList">
+                    <!-- Las filas de los certificados se insertarán aquí -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- SECCIÓN DE VISUALIZACIÓN DE CERTIFICADOS -->
+        <section id="viewCertsSection" style="display:none;">
+            <h2>Certificados Emitidos</h2>
+            <table class="certs-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                        <th>Cédula</th>
+                        <th>Fecha de Creación</th>
+                        <th>Fecha de Vencimiento</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="certsList">
                     <!-- Las filas de los certificados se insertarán aquí -->
                 </tbody>
             </table>

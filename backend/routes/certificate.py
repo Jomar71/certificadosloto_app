@@ -84,8 +84,8 @@ def download_certificate(cert_id):
             "nombre_persona": cert_data_raw,
             "apellido_persona": cert_data_raw,
             "numero_identificacion": cert_data_raw,
-            "fecha_creacion": cert_data_raw, # Ya es un objeto datetime
-            "fecha_vencimiento": cert_data_raw, # Ya es un objeto datetime
+            "fecha_creacion": cert_data_raw,
+            "fecha_vencimiento": cert_data_raw,
             "email_persona": cert_data_raw
         }
 
@@ -168,6 +168,42 @@ def send_certificate_email(cert_id):
     except Exception as e:
         traceback.print_exc()
         return jsonify({"message": "Error interno del servidor al procesar el envío."}), 500
+    finally:
+        if conn:
+            release_db_connection(conn)
+@certificate_bp.route('/all', methods=['GET'])
+def get_all_certificates():
+    """
+    Obtiene todos los certificados de la base de datos.
+    """
+    conn = None
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({"message": "Error crítico: No se pudo conectar a la base de datos."}), 500
+
+        cur = conn.cursor()
+        cur.execute("SELECT id_documento, tipo_documento, nombre_persona, apellido_persona, numero_identificacion, fecha_creacion, fecha_vencimiento, email_persona FROM certificadosloto")
+        cert_data_raw = cur.fetchall()
+        cur.close()
+
+        certificates = []
+        for row in cert_data_raw:
+            certificates.append({
+                "id_documento": row,
+                "tipo_documento": row,
+                "nombre_persona": row,
+                "apellido_persona": row,
+                "numero_identificacion": row,
+                "fecha_creacion": row.strftime('%Y-%m-%d') if row else None,
+                "fecha_vencimiento": row.strftime('%Y-%m-%d') if row else None,
+                "email_persona": row
+            })
+        
+        return jsonify(certificates)
+    except Exception:
+        traceback.print_exc()
+        return jsonify({"message": "Error interno del servidor al obtener los certificados."}), 500
     finally:
         if conn:
             release_db_connection(conn)

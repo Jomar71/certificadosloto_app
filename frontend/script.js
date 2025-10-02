@@ -495,3 +495,57 @@ document.addEventListener('DOMContentLoaded', function() {
     updateLoginUI();
     setupEventListeners();
 });
+
+// --- FUNCIONES PARA LA NUEVA SECCIÓN DE VISUALIZACIÓN DE CERTIFICADOS ---
+async function loadAllCertificates() {
+    const certsList = document.getElementById('certsList');
+    if (!certsList) return;
+
+    try {
+        const response = await fetchAPI('/certificates/all');
+        if (!response.ok) {
+            certsList.innerHTML = '<tr><td colspan="6">Error al cargar los certificados.</td></tr>';
+            return;
+        }
+        const certificates = await response.json();
+        if (certificates.length === 0) {
+            certsList.innerHTML = '<tr><td colspan="6">No hay certificados para mostrar.</td></tr>';
+            return;
+        }
+
+        certsList.innerHTML = ''; // Limpiar la lista
+        certificates.forEach(cert => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${cert.id_documento}</td>
+                <td>${cert.nombre_persona} ${cert.apellido_persona}</td>
+                <td>${cert.numero_identificacion}</td>
+                <td>${cert.fecha_creacion}</td>
+                <td>${cert.fecha_vencimiento}</td>
+                <td>
+                    <button class="btn-download" data-id="${cert.id_documento}">Descargar</button>
+                </td>
+            `;
+            certsList.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Error cargando todos los certificados:', error);
+        certsList.innerHTML = '<tr><td colspan="6">Error de conexión al cargar certificados.</td></tr>';
+    }
+}
+
+// --- DELEGACIÓN DE EVENTOS PARA BOTONES DE LA TABLA DE CERTIFICADOS ---
+document.getElementById('certsList')?.addEventListener('click', function(e) {
+    const target = e.target;
+    const certId = target.dataset.id;
+
+    if (target.classList.contains('btn-download')) {
+        window.location.href = `/api/certificates/${certId}/download`;
+    }
+});
+
+// --- INICIALIZACIÓN DE LA NUEVA SECCIÓN ---
+document.getElementById('viewCertsBtn')?.addEventListener('click', async () => {
+    showSection('viewCertsSection');
+    await loadAllCertificates();
+});
