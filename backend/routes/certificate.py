@@ -55,8 +55,10 @@ def search_certificate():
 def download_certificate(cert_id):
     """
     Busca el nombre del archivo PDF en la base de datos y lo envía para su descarga.
+    Si el PDF no existe, lo regenera automáticamente.
     """
     conn = None
+    cur = None
     try:
         conn = get_db_connection()
         if not conn:
@@ -65,27 +67,56 @@ def download_certificate(cert_id):
         cur = conn.cursor()
         cur.execute("SELECT ruta_pdf FROM certificadosloto WHERE id_documento = %s", (cert_id,))
         result = cur.fetchone()
-        cur.close()
 
-        if result and result[0]:
-            pdf_filename = result[0]
-            # Usamos una ruta absoluta para máxima fiabilidad
-            backend_folder = os.path.dirname(os.path.abspath(__file__))
-            pdf_directory = os.path.join(backend_folder, '..', 'certificates_generated')
-            
-            if not os.path.exists(os.path.join(pdf_directory, pdf_filename)):
-                return "El archivo PDF no se encuentra en el servidor, necesita ser generado por un administrador.", 404
-
-            return send_from_directory(
-                directory=pdf_directory,
-                path=pdf_filename,
-                as_attachment=True
-            )
-        else:
+        if not result or not result[0]:
             return "No se encontró el registro o la ruta del PDF es nula.", 404
+
+        pdf_filename = result[0]
+        # Usamos una ruta absoluta para máxima fiabilidad
+        backend_folder = os.path.dirname(os.path.abspath(__file__))
+        pdf_directory = os.path.join(backend_folder, '..', 'certificates_generated')
+        pdf_filepath = os.path.join(pdf_directory, pdf_filename)
+
+        if not os.path.exists(pdf_filepath):
+            # Regenerar el PDF si no existe
+            cur.execute("SELECT tipo_documento, nombre_persona, apellido_persona, numero_identificacion, fecha_creacion, fecha_vencimiento, email_persona FROM certificadosloto WHERE id_documento = %s", (cert_id,))
+            cert_data = cur.fetchone()
+            if not cert_data:
+                return "Certificado no encontrado.", 404
+
+            cert_dict = {
+                'id_documento': cert_id,
+                'tipo_documento': cert_data[0],
+                'nombre_persona': cert_data[1],
+                'apellido_persona': cert_data[2],
+                'numero_identificacion': cert_data[3],
+                'fecha_creacion': cert_data[4],
+                'fecha_vencimiento': cert_data[5],
+                'email_persona': cert_data[6]
+            }
+
+            from backend.pdf_generator import generate_certificate_pdf
+            new_pdf_filename = generate_certificate_pdf(cert_dict)
+            if not new_pdf_filename:
+                return "Error al regenerar el PDF.", 500
+
+            # Actualizar la ruta en la base de datos si cambió (aunque no debería)
+            if new_pdf_filename != pdf_filename:
+                cur.execute("UPDATE certificadosloto SET ruta_pdf = %s WHERE id_documento = %s", (new_pdf_filename, cert_id))
+                conn.commit()
+
+            pdf_filename = new_pdf_filename
+
+        return send_from_directory(
+            directory=pdf_directory,
+            path=pdf_filename,
+            as_attachment=True
+        )
     except Exception:
         traceback.print_exc()
         return "Error interno del servidor al procesar la descarga.", 500
     finally:
+        if cur:
+            cur.close()
         if conn:
             release_db_connection(conn)
