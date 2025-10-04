@@ -1,36 +1,3 @@
-// ===================================================================================
-// SCRIPT.JS - VERSIÓN FINAL CON MÁXIMA COMPATIBILIDAD MÓVIL
-// ===================================================================================
-document.addEventListener('DOMContentLoaded', () => {
-    // --- URLs y constantes ---
-    // Esta URL se usará solo en el entorno local. Se reemplazará al desplegar.
-
-    // --- Selección de Elementos ---
-    // (Esta sección no cambia)
-    
-    // --- Funciones ---
-    // (No cambian, pero las incluyo para que el archivo esté completo)
-
-    // --- Asignación de Eventos ---
-    // Esta es la parte que vamos a reescribir para máxima compatibilidad
-    
-    function initializeApp() {
-        const loginBtn = document.getElementById('loginBtn');
-        const adminPanelBtn = document.getElementById('adminPanelBtn');
-        // ... (el resto de tus getElementById)
-
-        if (loginBtn) {
-            loginBtn.addEventListener('click', () => {
-                // ...
-            });
-        }
-        
-        // ... (el resto de tus addEventListener)
-    }
-
-    initializeApp();
-});
-
 // --- CÓDIGO COMPLETO PARA COPIAR Y PEGAR ---
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -93,6 +60,155 @@ document.addEventListener('DOMContentLoaded', function() {
             if (loginBtn) loginBtn.style.display = 'inline-block';
             if (adminPanelBtn) adminPanelBtn.style.display = 'none';
             if (logoutBtn) logoutBtn.style.display = 'none';
+        }
+    }
+
+    // --- FUNCIONES PARA MANEJO DE ADMINISTRADORES Y CERTIFICADOS ---
+    async function handleEditAdmin(adminId) {
+        const modal = document.getElementById('editAdminModal');
+        if (!modal) return;
+
+        try {
+            const response = await fetchAPI(`/admin/admins/${adminId}`);
+            if (!response.ok) {
+                alert('No se pudieron cargar los datos del administrador.');
+                return;
+            }
+            const admin = await response.json();
+
+            // Rellenar el formulario del modal
+            document.getElementById('editAdminId').value = admin.id_admin;
+            document.getElementById('editAdminUser').value = admin.login_user;
+            document.getElementById('editAdminPass').value = '';
+
+            modal.style.display = 'block';
+
+        } catch (error) {
+            console.error('Error al obtener datos del administrador para editar:', error);
+            alert('Error de conexión al cargar los datos para editar.');
+        }
+    }
+
+    async function handleDeleteCertificate(certId) {
+        if (!confirm(`¿Estás seguro de que quieres eliminar el certificado con ID ${certId}?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetchAPI(`/admin/certificates/${certId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('Certificado eliminado con éxito.');
+                await loadAdminCertificates(); // Recargar la lista
+            } else {
+                const data = await response.json();
+                alert(`Error al eliminar: ${data.message}`);
+            }
+        } catch (error) {
+            console.error('Error al eliminar certificado:', error);
+            alert('Error de conexión al intentar eliminar el certificado.');
+        }
+    }
+
+    async function handleEditCertificate(certId) {
+        const modal = document.getElementById('editCertModal');
+        if (!modal) return;
+
+        try {
+            const response = await fetchAPI(`/admin/certificates/${certId}`);
+            if (!response.ok) {
+                alert('No se pudieron cargar los datos del certificado.');
+                return;
+            }
+            const cert = await response.json();
+
+            // Rellenar el formulario del modal
+            document.getElementById('editCertId').value = cert.id_documento;
+            document.getElementById('editCertTipoDocumento').value = cert.tipo_documento;
+            document.getElementById('editCertNombrePersona').value = cert.nombre_persona;
+            document.getElementById('editCertApellidoPersona').value = cert.apellido_persona;
+            document.getElementById('editCertNumeroIdentificacion').value = cert.numero_identificacion;
+            // Asegurarse de que las fechas se asignen correctamente, incluso si son nulas
+            document.getElementById('editCertFechaCreacion').value = cert.fecha_creacion || '';
+            document.getElementById('editCertFechaVencimiento').value = cert.fecha_vencimiento || '';
+            document.getElementById('editCertEmailPersona').value = cert.email_persona || '';
+            
+            // Mostrar la ruta del PDF (no editable directamente)
+            const rutaPdfSpan = document.getElementById('displayEditCertRutaPdf');
+            if (rutaPdfSpan) rutaPdfSpan.textContent = cert.ruta_pdf || 'No disponible';
+
+            modal.style.display = 'block';
+
+        } catch (error) {
+            console.error('Error al obtener datos del certificado para editar:', error);
+            alert('Error de conexión al cargar los datos para editar.');
+        }
+    }
+
+    async function loadAdminCertificates() {
+        const certList = document.getElementById('adminCertificatesList');
+        if (!certList) return;
+
+        try {
+            const response = await fetchAPI('/admin/certificates');
+            if (!response.ok) {
+                certList.innerHTML = '<tr><td colspan="4">Error al cargar los certificados.</td></tr>';
+                return;
+            }
+            const certificates = await response.json();
+            if (certificates.length === 0) {
+                certList.innerHTML = '<tr><td colspan="4">No hay certificados para mostrar.</td></tr>';
+                return;
+            }
+
+            certList.innerHTML = ''; // Limpiar la lista
+            certificates.forEach(cert => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${cert.id_documento}</td>
+                    <td>${cert.nombre_persona} ${cert.apellido_persona}</td>
+                    <td>${cert.numero_identificacion}</td>
+                    <td>
+                        <button class="btn-edit" data-id="${cert.id_documento}">Editar</button>
+                        <button class="btn-delete" data-id="${cert.id_documento}">Eliminar</button>
+                    </td>
+                `;
+                certList.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error cargando certificados para admin:', error);
+            certList.innerHTML = '<tr><td colspan="4">Error de conexión al cargar certificados.</td></tr>';
+        }
+    }
+
+    async function loadAdminUsers() {
+        const adminList = document.getElementById('adminList');
+        if (!adminList) return;
+
+        try {
+            const response = await fetchAPI('/admin/admins');
+            if (!response.ok) {
+                adminList.innerHTML = '<li>Error al cargar administradores.</li>';
+                return;
+            }
+            const admins = await response.json();
+            adminList.innerHTML = ''; // Limpiar
+            admins.forEach(admin => {
+                const li = document.createElement('li');
+                li.textContent = admin.login_user + ' ';
+                const editBtn = document.createElement('button');
+                editBtn.textContent = 'Editar';
+                editBtn.classList.add('edit-admin-btn');
+                editBtn.dataset.id = admin.id_admin;
+                li.appendChild(editBtn);
+                adminList.appendChild(li);
+            });
+        } 
+        catch (error) {
+            console.error('Error cargando administradores:', error);
+            adminList.innerHTML = '<li>Error de conexión.</li>';
         }
     }
 
@@ -317,6 +433,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        // --- DELEGACIÓN DE EVENTOS PARA BOTONES DE EDITAR ADMINISTRADORES ---
+        document.getElementById('adminList')?.addEventListener('click', function(e) {
+            if (e.target.classList.contains('edit-admin-btn')) {
+                const adminId = e.target.dataset.id;
+                handleEditAdmin(adminId);
+            }
+        });
+
         // --- DELEGACIÓN DE EVENTOS PARA BOTONES DE LA TABLA DE CERTIFICADOS ---
         document.getElementById('adminCertificatesList')?.addEventListener('click', function(e) {
             const target = e.target;
@@ -370,125 +494,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Error de conexión al guardar los cambios.');
             }
         });
-    }
 
-    async function handleDeleteCertificate(certId) {
-        if (!confirm(`¿Estás seguro de que quieres eliminar el certificado con ID ${certId}?`)) {
-            return;
-        }
+        document.getElementById('saveAdminBtn')?.addEventListener('click', async () => {
+            const adminId = document.getElementById('editAdminId').value;
+            const updatedData = {
+                login_user: document.getElementById('editAdminUser').value,
+                login_pass: document.getElementById('editAdminPass').value
+            };
 
-        try {
-            const response = await fetchAPI(`/admin/certificates/${certId}`, {
-                method: 'DELETE'
-            });
+            try {
+                const response = await fetchAPI(`/admin/admins/${adminId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
 
-            if (response.ok) {
-                alert('Certificado eliminado con éxito.');
-                await loadAdminCertificates(); // Recargar la lista
-            } else {
-                const data = await response.json();
-                alert(`Error al eliminar: ${data.message}`);
+                if (response.ok) {
+                    alert('Administrador actualizado con éxito.');
+                    const modal = document.getElementById('editAdminModal');
+                    if (modal) modal.style.display = 'none';
+                    await loadAdminUsers(); // Recargar la lista
+                } else {
+                    const data = await response.json();
+                    alert(`Error al actualizar: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Error al guardar cambios del administrador:', error);
+                alert('Error de conexión al guardar los cambios.');
             }
-        } catch (error) {
-            console.error('Error al eliminar certificado:', error);
-            alert('Error de conexión al intentar eliminar el certificado.');
-        }
-    }
-
-    async function handleEditCertificate(certId) {
-        const modal = document.getElementById('editCertModal');
-        if (!modal) return;
-
-        try {
-            const response = await fetchAPI(`/admin/certificates/${certId}`);
-            if (!response.ok) {
-                alert('No se pudieron cargar los datos del certificado.');
-                return;
-            }
-            const cert = await response.json();
-
-            // Rellenar el formulario del modal
-            document.getElementById('editCertId').value = cert.id_documento;
-            document.getElementById('editCertTipoDocumento').value = cert.tipo_documento;
-            document.getElementById('editCertNombrePersona').value = cert.nombre_persona;
-            document.getElementById('editCertApellidoPersona').value = cert.apellido_persona;
-            document.getElementById('editCertNumeroIdentificacion').value = cert.numero_identificacion;
-            // Asegurarse de que las fechas se asignen correctamente, incluso si son nulas
-            document.getElementById('editCertFechaCreacion').value = cert.fecha_creacion || '';
-            document.getElementById('editCertFechaVencimiento').value = cert.fecha_vencimiento || '';
-            document.getElementById('editCertEmailPersona').value = cert.email_persona || '';
-            
-            // Mostrar la ruta del PDF (no editable directamente)
-            const rutaPdfSpan = document.getElementById('displayEditCertRutaPdf');
-            if (rutaPdfSpan) rutaPdfSpan.textContent = cert.ruta_pdf || 'No disponible';
-
-            modal.style.display = 'block';
-
-        } catch (error) {
-            console.error('Error al obtener datos del certificado para editar:', error);
-            alert('Error de conexión al cargar los datos para editar.');
-        }
-    }
-
-    async function loadAdminCertificates() {
-        const certList = document.getElementById('adminCertificatesList');
-        if (!certList) return;
-
-        try {
-            const response = await fetchAPI('/admin/certificates');
-            if (!response.ok) {
-                certList.innerHTML = '<tr><td colspan="4">Error al cargar los certificados.</td></tr>';
-                return;
-            }
-            const certificates = await response.json();
-            if (certificates.length === 0) {
-                certList.innerHTML = '<tr><td colspan="4">No hay certificados para mostrar.</td></tr>';
-                return;
-            }
-
-            certList.innerHTML = ''; // Limpiar la lista
-            certificates.forEach(cert => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${cert.id_documento}</td>
-                    <td>${cert.nombre_persona} ${cert.apellido_persona}</td>
-                    <td>${cert.numero_identificacion}</td>
-                    <td>
-                        <button class="btn-edit" data-id="${cert.id_documento}">Editar</button>
-                        <button class="btn-delete" data-id="${cert.id_documento}">Eliminar</button>
-                    </td>
-                `;
-                certList.appendChild(row);
-            });
-        } catch (error) {
-            console.error('Error cargando certificados para admin:', error);
-            certList.innerHTML = '<tr><td colspan="4">Error de conexión al cargar certificados.</td></tr>';
-        }
-    }
-
-    async function loadAdminUsers() {
-        const adminList = document.getElementById('adminList');
-        if (!adminList) return;
-
-        try {
-            const response = await fetchAPI('/admin/admins');
-            if (!response.ok) {
-                adminList.innerHTML = '<li>Error al cargar administradores.</li>';
-                return;
-            }
-            const admins = await response.json();
-            adminList.innerHTML = ''; // Limpiar
-            admins.forEach(admin => {
-                const li = document.createElement('li');
-                li.textContent = admin.login_user;
-                // Aquí se podrían añadir botones de editar/eliminar para admins
-                adminList.appendChild(li);
-            });
-        } catch (error) {
-            console.error('Error cargando administradores:', error);
-            adminList.innerHTML = '<li>Error de conexión.</li>';
-        }
-    }
+        });
+}
 
     // --- INICIALIZACIÓN ---
     showSection('homeSection');
@@ -496,56 +531,4 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
 });
 
-// --- FUNCIONES PARA LA NUEVA SECCIÓN DE VISUALIZACIÓN DE CERTIFICADOS ---
-async function loadAllCertificates() {
-    const certsList = document.getElementById('certsList');
-    if (!certsList) return;
 
-    try {
-        const response = await fetchAPI('/certificates/all');
-        if (!response.ok) {
-            certsList.innerHTML = '<tr><td colspan="6">Error al cargar los certificados.</td></tr>';
-            return;
-        }
-        const certificates = await response.json();
-        if (certificates.length === 0) {
-            certsList.innerHTML = '<tr><td colspan="6">No hay certificados para mostrar.</td></tr>';
-            return;
-        }
-
-        certsList.innerHTML = ''; // Limpiar la lista
-        certificates.forEach(cert => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${cert.id_documento}</td>
-                <td>${cert.nombre_persona} ${cert.apellido_persona}</td>
-                <td>${cert.numero_identificacion}</td>
-                <td>${cert.fecha_creacion}</td>
-                <td>${cert.fecha_vencimiento}</td>
-                <td>
-                    <button class="btn-download" data-id="${cert.id_documento}">Descargar</button>
-                </td>
-            `;
-            certsList.appendChild(row);
-        });
-    } catch (error) {
-        console.error('Error cargando todos los certificados:', error);
-        certsList.innerHTML = '<tr><td colspan="6">Error de conexión al cargar certificados.</td></tr>';
-    }
-}
-
-// --- DELEGACIÓN DE EVENTOS PARA BOTONES DE LA TABLA DE CERTIFICADOS ---
-document.getElementById('certsList')?.addEventListener('click', function(e) {
-    const target = e.target;
-    const certId = target.dataset.id;
-
-    if (target.classList.contains('btn-download')) {
-        window.location.href = `/api/certificates/${certId}/download`;
-    }
-});
-
-// --- INICIALIZACIÓN DE LA NUEVA SECCIÓN ---
-document.getElementById('viewCertsBtn')?.addEventListener('click', async () => {
-    showSection('viewCertsSection');
-    await loadAllCertificates();
-});

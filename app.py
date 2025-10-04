@@ -8,6 +8,7 @@ import sys
 from flask import Flask, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash
 
 # Se importan las funciones necesarias de la base de datos
 from backend.db import get_db_connection, release_db_connection
@@ -17,14 +18,16 @@ dotenv_path = os.path.join(os.path.dirname(__file__), 'backend', '.env')
 load_dotenv(dotenv_path=dotenv_path)
 
 def create_app():
-    # Configuración estándar para servir una SPA desde la carpeta 'frontend'
+    # Configura la carpeta 'frontend' para servir archivos estáticos usando una ruta absoluta.
+    # Configura la carpeta estática para que sea la raíz del proyecto
+    # Esto es más robusto para Render si los archivos se colocan directamente en la raíz
     project_root = os.path.dirname(os.path.abspath(__file__))
-    app = Flask(__name__, static_folder=os.path.join(project_root, 'frontend'))
+    app = Flask(__name__, static_folder=project_root)
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key-de-respaldo')
 
     # --- Configuración de Cookies para Same-Origin (Producción) ---
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    app.config['SESSION_COOKIE_SECURE'] = True  # Requerido para HTTPS
+    app.config['SESSION_COOKIE_SECURE'] = not app.debug  # True solo en producción (HTTPS)
 
     # --- Configuración de CORS ---
     # Permite credenciales (cookies) y acepta peticiones de cualquier origen.
@@ -46,12 +49,18 @@ def create_app():
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve_frontend(path):
-        # Si la ruta solicitada es un archivo dentro de la carpeta 'frontend', sírvelo.
-        if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
-            return send_from_directory(app.static_folder, path)
-        # Para cualquier otra ruta, sirve el 'index.html' (comportamiento de SPA).
-        else:
-            return send_from_directory(app.static_folder, 'index.html')
+        # Intenta servir el archivo desde la carpeta 'frontend'
+        frontend_path = os.path.join(project_root, 'frontend', path)
+        if os.path.exists(frontend_path) and os.path.isfile(frontend_path):
+            return send_from_directory(os.path.join(project_root, 'frontend'), path)
+        
+        # Si no se encuentra en 'frontend', intenta servirlo desde la raíz del proyecto
+        root_path = os.path.join(project_root, path)
+        if os.path.exists(root_path) and os.path.isfile(root_path):
+            return send_from_directory(project_root, path)
+
+        # Si no es un archivo, o no se encuentra, sirve el index.html (comportamiento de SPA)
+        return send_from_directory(os.path.join(project_root, 'frontend'), 'index.html')
 
     return app
 
@@ -75,10 +84,10 @@ def init_db():
         cur.execute("SELECT COUNT(*) FROM administradoresloto")
         if cur.fetchone()[0] == 0:
             # Insertar un administrador por defecto si la tabla está vacía
-            # Contraseña en texto plano (NO RECOMENDADO PARA PRODUCCIÓN)
+            hashed_password = generate_password_hash('password')
             cur.execute(
                 "INSERT INTO administradoresloto (login_user, login_pass) VALUES (%s, %s)",
-                ('admin', 'password')
+                ('admin', hashed_password)
             )
             print("Tabla 'administradoresloto' creada y administrador por defecto insertado.")
         
