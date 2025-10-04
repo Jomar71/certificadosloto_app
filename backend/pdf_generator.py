@@ -5,6 +5,7 @@
 
 import os
 import traceback
+from datetime import datetime
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter, landscape
 from reportlab.lib.colors import HexColor
@@ -64,6 +65,43 @@ def generate_certificate_pdf(certificate_data):
         id_color = '#873233'
         id_x = width / 1.7
         id_y = 240
+
+        # Fechas
+        fecha_creacion = certificate_data.get('fecha_creacion', '')
+        fecha_vencimiento = certificate_data.get('fecha_vencimiento', '')
+        if fecha_creacion:
+            if isinstance(fecha_creacion, str):
+                dt_creacion = datetime.fromisoformat(fecha_creacion)
+            else:
+                dt_creacion = fecha_creacion
+            mes_creacion = meses_es.get(dt_creacion.strftime('%B'), dt_creacion.strftime('%B'))
+            fecha_creacion_formatted = f"{dt_creacion.day:02d} de {mes_creacion} {dt_creacion.year}"
+        else:
+            fecha_creacion_formatted = 'N/A'
+        if fecha_vencimiento:
+            if isinstance(fecha_vencimiento, str):
+                dt_vencimiento = datetime.fromisoformat(fecha_vencimiento)
+            else:
+                dt_vencimiento = fecha_vencimiento
+            mes_vencimiento = meses_es.get(dt_vencimiento.strftime('%B'), dt_vencimiento.strftime('%B'))
+            fecha_vencimiento_formatted = f"{dt_vencimiento.day:02d} de {mes_vencimiento} {dt_vencimiento.year}"
+        else:
+            fecha_vencimiento_formatted = 'N/A'
+
+        fecha_creacion_text = f"Dado el: {fecha_creacion_formatted}"
+        fecha_creacion_font = texto_font_name
+        fecha_creacion_size = 12
+        fecha_creacion_color = '#873233'
+        fecha_creacion_x = width / 3.6   # Posición ajustable
+        fecha_creacion_y = 190  # Posición ajustable
+
+        fecha_vencimiento_text = f"Vence el: {fecha_vencimiento_formatted}"
+        fecha_vencimiento_font = texto_font_name
+        fecha_vencimiento_size = 12
+        fecha_vencimiento_color = '#873233'
+        fecha_vencimiento_x = width / 1.9  # Posición ajustable
+        fecha_vencimiento_y = 190   # Posición ajustable
+
         # ==========================================================================
 
         c.setFont(full_name_font, full_name_size)
@@ -73,6 +111,14 @@ def generate_certificate_pdf(certificate_data):
         c.setFont(id_font, id_size)
         c.setFillColor(HexColor(id_color))
         c.drawCentredString(id_x, id_y, id_text)
+
+        c.setFont(fecha_creacion_font, fecha_creacion_size)
+        c.setFillColor(HexColor(fecha_creacion_color))
+        c.drawString(fecha_creacion_x, fecha_creacion_y, fecha_creacion_text)
+
+        c.setFont(fecha_vencimiento_font, fecha_vencimiento_size)
+        c.setFillColor(HexColor(fecha_vencimiento_color))
+        c.drawString(fecha_vencimiento_x, fecha_vencimiento_y, fecha_vencimiento_text)
         
         c.save()
         return filename
