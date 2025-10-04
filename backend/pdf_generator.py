@@ -63,7 +63,7 @@ def generate_certificate_pdf(certificate_data):
         id_font = texto_font_name # Usa la fuente que se haya podido cargar
         id_size = 14
         id_color = '#873233'
-        id_x = width / 1.7
+        id_x = width / 1.8
         id_y = 240
 
         # Fechas
